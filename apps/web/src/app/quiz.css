@@ -263,3 +263,47 @@ html:not(.book-mode) .quiz-card p.quiz-gate {
 .quiz-match .quiz-check {
   justify-self: start;
 }
+
+/* Review page */
+.review-main {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 2.5rem 1.25rem 4rem;
+}
+.review-main h1 {
+  font-family: var(--font-serif);
+  font-size: 2rem;
+  font-weight: 600;
+}
+.review-card {
+  margin-top: 1.5rem;
+  padding: 1.4rem;
+  border: 1px solid var(--border);
+  border-radius: 1.1rem;
+  background: var(--surface);
+  font-size: 15px;
+}
+.review-done h2 {
+  margin: 0.4rem 0 0.4rem;
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+.review-progress {
+  height: 4px;
+  margin-bottom: 0.9rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text) 10%, transparent);
+  overflow: hidden;
+}
+.review-progress span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.3s ease;
+}
+.review-card p.review-count {
+  margin: 0 0 0.6rem;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}

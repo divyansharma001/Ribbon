@@ -168,3 +168,12 @@ export const getLearningStats = cache(async (userId: string): Promise<LearningSt
     perfectChecks,
   };
 });
+
+/** When the next review card comes due, or null if the deck is empty. */
+export async function getNextDue(userId: string): Promise<Date | null> {
+  const rows = await db.execute<{ next: string | null }>(
+    sql`select min(due_at) as next from review_cards where user_id = ${userId}`,
+  );
+  const next = rows.rows[0]?.next;
+  return next ? new Date(next) : null;
+}

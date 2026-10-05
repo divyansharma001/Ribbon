@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { GoalSettings, TimeZoneSync } from "@/components/home/goal-settings";
+import { BadgeShelf, LevelCard, ReviewCard } from "@/components/home/learning-parts";
 import {
   FlameIcon,
   GoalRing,
@@ -12,6 +13,8 @@ import { RibbonMark } from "@/components/ribbon-mark";
 import { SoundButton } from "@/components/sound/sound-button";
 import { ThemePicker } from "@/components/theme-picker";
 import { getBookProgress, getContinueReading } from "@/lib/home";
+import { getDueCount, getLearningStats, getNextDue } from "@/lib/learning/data";
+import { badgesFor, levelFor, xpFrom } from "@/lib/learning/logic";
 import { timeAgo } from "@/lib/reading/logic";
 import { requireUser } from "@/lib/session";
 import { getStreak } from "@/lib/streaks/data";
@@ -39,11 +42,15 @@ function greeting(timeZone: string): string {
 
 export default async function Home() {
   const user = await requireUser();
-  const [streak, last, books] = await Promise.all([
+  const [streak, last, books, stats, due, nextDue] = await Promise.all([
     getStreak(user.id),
     getContinueReading(user.id),
     getBookProgress(user.id),
+    getLearningStats(user.id),
+    getDueCount(user.id),
+    getNextDue(user.id),
   ]);
+  const level = levelFor(xpFrom(stats));
   const { settings } = streak;
   const firstName = user.name.split(" ")[0] ?? user.name;
   const left = Math.max(0, Math.ceil(streak.goalMinutes - streak.todayMinutes));
@@ -144,6 +151,11 @@ export default async function Home() {
           </section>
         </div>
 
+        <div className="home-grid home-grid-even">
+          <LevelCard level={level} />
+          <ReviewCard due={due} next={nextDue} />
+        </div>
+
         <section className="home-card home-calendar" aria-labelledby="calendar-title">
           <div className="home-section-head">
             <h2 id="calendar-title">Reading calendar</h2>
@@ -164,6 +176,8 @@ export default async function Home() {
           </div>
           <StreakCalendar days={days} goal={streak.goalMinutes} />
         </section>
+
+        <BadgeShelf badges={badgesFor(stats)} />
 
         <div className="home-grid home-grid-even">
           <section className="home-card" aria-labelledby="books-title">
