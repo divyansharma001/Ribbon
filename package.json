@@ -1,5 +1,5 @@
 {
-  "name": "book-reader",
+  "name": "ribbon",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@12.4.2",
@@ -7,15 +7,21 @@
     "node": ">=24"
   },
   "scripts": {
-    "ingest": "pnpm --filter @book-reader/ingest run ingest",
+    "dev": "pnpm --filter @ribbon/web dev",
+    "build": "pnpm --filter @ribbon/web build",
+    "ingest": "pnpm --filter @ribbon/ingest run ingest",
     "test": "pnpm -r run test",
     "typecheck": "pnpm -r run typecheck",
     "lint": "biome check .",
-    "format": "biome check --write ."
+    "format": "biome check --write .",
+    "load": "pnpm --filter @ribbon/ingest run load",
+    "db:generate": "pnpm --filter @ribbon/db run generate",
+    "db:migrate": "pnpm --filter @ribbon/db run migrate",
+    "db:up": "docker compose up -d --wait"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.15",
-    "@types/node": "26.6.4",
+    "@types/node": "24.19.1",
     "typescript": "7.0.2"
   }
 }

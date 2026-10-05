@@ -6,7 +6,7 @@ import {
   type ChapterSummary,
   GlossaryEntry,
   type Inline,
-} from "@book-reader/book-schema";
+} from "@ribbon/book-schema";
 import { load } from "cheerio";
 import type { BookConfig } from "./books.ts";
 import { type ParseChapterResult, parseChapter } from "./chapter.ts";

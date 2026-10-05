@@ -417,3 +417,9 @@ export function blockText(block: Block): string {
 export function countWords(text: string): number {
   return text.split(/\s+/).filter(Boolean).length;
 }
+
+/** Where a figure lives in file storage, e.g. "books/ddia-2e/figures/ddia_0601.png". */
+export function figureStoragePath(bookId: string, src: string): string {
+  if (!/^figures\/[\w.-]+$/.test(src)) throw new Error(`Bad figure path: ${src}`);
+  return `books/${bookId}/${src}`;
+}

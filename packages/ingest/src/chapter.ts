@@ -10,7 +10,7 @@ import {
   type Note,
   type OutlineNode,
   type PlacedBlock,
-} from "@book-reader/book-schema";
+} from "@ribbon/book-schema";
 import { load } from "cheerio";
 import { type AnyNode, type Element, isTag, isText } from "domhandler";
 

@@ -1,0 +1,140 @@
+@import "tailwindcss";
+@import "./reader.css";
+
+/*
+ * Design tokens. Three reading themes (light, sepia, dark), chosen with
+ * data-theme on <html>. "system" follows the device setting.
+ */
+
+:root,
+[data-theme="light"] {
+  --bg: #fbfaf7;
+  --surface: #ffffff;
+  --surface-muted: #f3f1ec;
+  --text: #1f1d1a;
+  --text-muted: #6b665e;
+  --border: #e7e3da;
+  --accent: #a8323e;
+  --accent-soft: #f6e6e7;
+  --accent-text: #ffffff;
+  --mark: #fff1b8;
+  --focus: #a8323e;
+  color-scheme: light;
+}
+
+[data-theme="sepia"] {
+  --bg: #f4ecd8;
+  --surface: #f9f2e1;
+  --surface-muted: #ece2c9;
+  --text: #3b2f20;
+  --text-muted: #7a6a55;
+  --border: #e0d2b4;
+  --accent: #9c3b2e;
+  --accent-soft: #ecd7c4;
+  --accent-text: #ffffff;
+  --mark: #f3dc9a;
+  --focus: #9c3b2e;
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --bg: #141312;
+  --surface: #1c1b19;
+  --surface-muted: #24221f;
+  --text: #e9e5dd;
+  --text-muted: #a39d92;
+  --border: #302d29;
+  --accent: #e2737c;
+  --accent-soft: #3a2326;
+  --accent-text: #141312;
+  --mark: #4a4120;
+  --focus: #e2737c;
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  [data-theme="system"] {
+    --bg: #141312;
+    --surface: #1c1b19;
+    --surface-muted: #24221f;
+    --text: #e9e5dd;
+    --text-muted: #a39d92;
+    --border: #302d29;
+    --accent: #e2737c;
+    --accent-soft: #3a2326;
+    --accent-text: #141312;
+    --mark: #4a4120;
+    --focus: #e2737c;
+    color-scheme: dark;
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-text: var(--text);
+  --color-muted: var(--text-muted);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-text: var(--accent-text);
+  --color-mark: var(--mark);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-literata), ui-serif, Georgia, serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+html {
+  background: var(--bg);
+  color: var(--text);
+  -webkit-text-size-adjust: 100%;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  min-height: 100dvh;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+::selection {
+  background: var(--accent-soft);
+}
+
+/* Contents drawer: a native <dialog> that slides in from the right. */
+.contents-drawer {
+  position: fixed;
+  inset: 0 0 0 auto;
+  width: min(24rem, 88vw);
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-left: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  transform: translateX(100%);
+  transition:
+    transform 0.25s ease,
+    overlay 0.25s allow-discrete,
+    display 0.25s allow-discrete;
+}
+.contents-drawer[open] {
+  transform: translateX(0);
+}
+@starting-style {
+  .contents-drawer[open] {
+    transform: translateX(100%);
+  }
+}
+.contents-drawer::backdrop {
+  background: rgb(0 0 0 / 0.35);
+}

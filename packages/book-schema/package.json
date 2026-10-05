@@ -1,5 +1,5 @@
 {
-  "name": "@book-reader/book-schema",
+  "name": "@ribbon/book-schema",
   "private": true,
   "type": "module",
   "exports": {

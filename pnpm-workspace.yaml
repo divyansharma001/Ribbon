@@ -1,2 +1,9 @@
 packages:
+  - "apps/*"
   - "packages/*"
+
+# Packages allowed to run install scripts. Both ship prebuilt binaries, so scripts stay off.
+allowBuilds:
+  esbuild: set this to true or false
+  sharp: false
+  unrs-resolver: false

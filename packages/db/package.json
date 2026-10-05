@@ -1,0 +1,27 @@
+{
+  "name": "@ribbon/db",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./schema": "./src/schema/index.ts",
+    "./testing": "./src/testing.ts"
+  },
+  "scripts": {
+    "generate": "drizzle-kit generate",
+    "migrate": "drizzle-kit migrate",
+    "studio": "drizzle-kit studio",
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "@ribbon/book-schema": "workspace:*",
+    "@vercel/functions": "3.9.11",
+    "drizzle-orm": "0.45.3",
+    "pg": "8.23.1"
+  },
+  "devDependencies": {
+    "@types/pg": "8.23.1",
+    "dotenv": "18.0.5",
+    "drizzle-kit": "0.31.11"
+  }
+}

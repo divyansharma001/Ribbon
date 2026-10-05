@@ -1,0 +1,21 @@
+# Local Postgres for development and tests. Production uses Neon.
+name: ribbon
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: ribbon
+      POSTGRES_PASSWORD: ribbon
+      POSTGRES_DB: ribbon
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./scripts/create-test-db.sql:/docker-entrypoint-initdb.d/create-test-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ribbon"]
+      interval: 2s
+      retries: 15
+
+volumes:
+  pgdata:
