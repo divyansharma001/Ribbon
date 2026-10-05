@@ -7,6 +7,14 @@ import { NetworkRaceDiagram } from "./ch01/network-race";
 import { OltpOlapDiagram } from "./ch01/oltp-olap";
 import { SourceOfTruthDiagram } from "./ch01/source-of-truth";
 import { StorageComputeDiagram } from "./ch01/storage-compute";
+import { CorrelatedFaultsDiagram } from "./ch02/correlated-faults";
+import { FanOutDiagram } from "./ch02/fan-out";
+import { FaultFailureDiagram } from "./ch02/fault-failure";
+import { PercentilesDiagram } from "./ch02/percentiles";
+import { QueueingDiagram } from "./ch02/queueing";
+import { RequestAnatomyDiagram } from "./ch02/request-anatomy";
+import { ScaleUpOutDiagram } from "./ch02/scale-up-out";
+import { TailAmplificationDiagram } from "./ch02/tail-amplification";
 
 export interface DiagramPlacement {
   id: string;
@@ -68,6 +76,56 @@ export const DIAGRAMS: Record<string, Record<string, DiagramPlacement[]>> = {
         afterBlockId: "sec_introduction_dist_sys_problems.2",
         blockHash: "8162162f",
         Component: NetworkRaceDiagram,
+      },
+    ],
+    ch02: [
+      {
+        id: "fan-out",
+        afterBlockId: "sec_introduction_materializing.8",
+        blockHash: "227b759d",
+        Component: FanOutDiagram,
+      },
+      {
+        id: "queueing",
+        afterBlockId: "sec_introduction_percentiles.6",
+        blockHash: "bc47c152",
+        Component: QueueingDiagram,
+      },
+      {
+        id: "request-anatomy",
+        afterBlockId: "id23.6",
+        blockHash: "40cd322f",
+        Component: RequestAnatomyDiagram,
+      },
+      {
+        id: "percentiles",
+        afterBlockId: "id24.5",
+        blockHash: "466a5780",
+        Component: PercentilesDiagram,
+      },
+      {
+        id: "tail-amplification",
+        afterBlockId: "sec_introduction_slo_sla.2",
+        blockHash: "a01076ee",
+        Component: TailAmplificationDiagram,
+      },
+      {
+        id: "fault-failure",
+        afterBlockId: "id27.1",
+        blockHash: "abe4ce36",
+        Component: FaultFailureDiagram,
+      },
+      {
+        id: "correlated-faults",
+        afterBlockId: "id30.2",
+        blockHash: "f3d27982",
+        Component: CorrelatedFaultsDiagram,
+      },
+      {
+        id: "scale-up-out",
+        afterBlockId: "sec_introduction_shared_nothing.5",
+        blockHash: "d0eaca99",
+        Component: ScaleUpOutDiagram,
       },
     ],
   },

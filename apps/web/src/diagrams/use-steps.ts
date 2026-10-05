@@ -102,3 +102,22 @@ export function useInView<T extends Element>(): [React.RefObject<T | null>, bool
   }, []);
   return [ref, inView];
 }
+
+/**
+ * The element's width in CSS pixels. Charts draw in real pixels with it, so
+ * their text stays the same size on a phone and a desktop.
+ */
+export function useWidth<T extends Element>(fallback = 600): [React.RefObject<T | null>, number] {
+  const ref = useRef<T>(null);
+  const [width, setWidth] = useState(fallback);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new ResizeObserver(([entry]) => {
+      if (entry) setWidth(Math.round(entry.contentRect.width));
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  return [ref, width];
+}

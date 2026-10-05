@@ -69,6 +69,93 @@ export const IN_SHORT: Record<string, Record<string, Record<string, InShort>>> =
         terms: ["GDPR", "data minimization"],
       },
     },
+    ch02: {
+      ch_nonfunctional: {
+        text: "Features say what an app does. Nonfunctional requirements say how well it does it: fast, reliable, able to grow, and easy to maintain. This chapter gives you words to describe each one.",
+        terms: ["functional requirement", "nonfunctional requirement"],
+      },
+      sec_introduction_twitter: {
+        text: "A running example: a social network like X, with 5,800 posts per second and users who each follow about 200 people. How do you show everyone their home timeline fast?",
+        terms: ["home timeline"],
+      },
+      sec_introduction_materializing: {
+        text: "Instead of building each timeline when it is read, deliver every new post into each follower's stored timeline when it is written. Reads get cheap, writes get costlier, and celebrities need special care.",
+        terms: ["fan-out", "materialized view", "materialization"],
+      },
+      sec_introduction_percentiles: {
+        text: "Two numbers describe performance: response time (how long one request takes) and throughput (how many requests per second). Near full capacity, requests queue up and response time shoots up.",
+        terms: ["response time", "throughput", "metastable failure", "backpressure"],
+      },
+      id23: {
+        text: "Response time is everything the user waits for. It includes network travel, time waiting in queues, and the service time when work actually happens. A few slow requests can hold up the rest.",
+        terms: ["service time", "latency", "queueing delay", "head-of-line blocking"],
+      },
+      id24: {
+        text: "Response times vary, so treat them as a spread, not one number. The median shows the typical wait. High percentiles like p99 show how bad the slowest requests are.",
+        terms: ["median", "percentile", "p99", "tail latency"],
+      },
+      sec_introduction_slo_sla: {
+        text: "When one page needs many backend calls, it waits for the slowest one, so rare slow calls become common slow pages. Targets for percentiles go into SLOs, and SLAs say what happens if they're missed.",
+        terms: ["tail latency amplification", "SLO", "SLA"],
+      },
+      sec_introduction_reliability: {
+        text: "Reliable means it keeps working correctly even when things go wrong. A fault is one part breaking. A failure is the whole system letting users down. The goal is to stop faults from turning into failures.",
+        terms: ["reliability", "fault", "failure"],
+      },
+      id27: {
+        text: "A fault-tolerant system keeps serving users while some parts are broken, up to a limit. Some teams even break things on purpose to prove the safety nets work.",
+        terms: [
+          "fault tolerance",
+          "single point of failure",
+          "fault injection",
+          "chaos engineering",
+        ],
+      },
+      sec_introduction_hardware_faults: {
+        text: "Disks, memory, CPUs, and whole datacenters fail. With enough machines, something breaks every day, so failure becomes normal. Redundancy and spreading across zones keep the service up.",
+        terms: ["redundancy", "availability zone", "rolling upgrade"],
+      },
+      id30: {
+        text: "Software bugs are worse than hardware faults because every node runs the same code. One trigger, like a leap second, can take them all down at once.",
+        terms: ["correlated faults", "cascading failure"],
+      },
+      id31: {
+        text: "People cause most outages, often through config changes. Blaming them doesn't help. Good tools, quick rollback, and blameless postmortems do.",
+        terms: ["human error", "blameless postmortem"],
+      },
+      sec_introduction_scalability: {
+        text: "Scalability is how well a system copes with more load. It is not a yes-or-no label. Don't build for scale you don't have yet: keep things simple until growth shows you where the limits are.",
+        terms: ["scalability", "premature optimization"],
+      },
+      id33: {
+        text: "First measure your load: requests per second, reads vs writes, extreme cases. Then ask how much more hardware you need when the load doubles. Linear scalability is the dream.",
+        terms: ["load", "linear scalability"],
+      },
+      sec_introduction_shared_nothing: {
+        text: "To grow, buy a bigger machine (scale up) or add more machines (scale out). Shared-nothing machines each have their own CPU, RAM, and disks, and coordinate over the network.",
+        terms: ["vertical scaling", "shared-memory", "shared-disk", "shared-nothing"],
+      },
+      id35: {
+        text: "There is no one-size-fits-all scalable design. Expect to rethink it at every 10x of load. Split work into independent parts, and don't make things more complex than needed.",
+        terms: ["order of magnitude", "autoscaling"],
+      },
+      sec_introduction_maintainability: {
+        text: "Most of software's cost comes after launch: fixing, running, and changing it. Design so future engineers can keep it running, understand it, and change it.",
+        terms: ["maintainability", "legacy system"],
+      },
+      id37: {
+        text: "Make routine running easy: good monitoring, no dependence on one machine, clear docs, sensible defaults, and predictable behavior. Automate, but not blindly.",
+        terms: ["operability", "observability"],
+      },
+      id38: {
+        text: "Complexity slows everyone down and hides bugs. Good abstractions like SQL hide messy details behind a simple face, and many apps can reuse them.",
+        terms: ["big ball of mud", "accidental complexity", "abstraction"],
+      },
+      sec_introduction_evolvability: {
+        text: "Requirements always change. Simple, loosely coupled systems are easier to change, and being able to undo a change makes every change safer.",
+        terms: ["evolvability", "irreversibility"],
+      },
+    },
   },
 };
 

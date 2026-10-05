@@ -1,11 +1,12 @@
 import { CH01 } from "./ddia-2e-ch01";
+import { CH02 } from "./ddia-2e-ch02";
 import type { Question, QuizSet } from "./types";
 
 export type { Question, QuizSet } from "./types";
 
 /** Quiz sets per book and chapter. */
 export const QUIZZES: Record<string, Record<string, QuizSet[]>> = {
-  "ddia-2e": { ch01: CH01 },
+  "ddia-2e": { ch01: CH01, ch02: CH02 },
 };
 
 export function quizzesFor(bookId: string, chapterId: string): QuizSet[] {
