@@ -15,6 +15,7 @@ import {
   scrollTargetFor,
   timeAgo,
 } from "@/lib/reading/logic";
+import { getReadingSurface, SURFACE_MOVED } from "./surface";
 
 export interface OtherDeviceSpot extends DevicePosition {
   chapterTitle: string;
@@ -126,12 +127,23 @@ export function ReadingTracker({ bookId, chapterId, saved, otherDevice }: Readin
 
     let resumeEl: HTMLElement | null = null;
     let restoreScrollY: number | null = null;
+    // In book mode the book shows pages instead of scrolling; it tells us where we are.
+    let restorePage: number | null = null;
     const restore = () => {
       if (location.hash || !best || best.chapterId !== chapterId) return;
       const found = resolveSpot(best, refs);
       const i = found ? indexById.get(found.blockId) : undefined;
       const el = i === undefined ? undefined : elements[i];
       if (!found || !el) return;
+      const surface = getReadingSurface();
+      if (surface) {
+        surface.goto(el, found.exact ? best.offset : 0);
+        restorePage = surface.page();
+        resumeEl = el;
+        el.style.setProperty("--resume-at", `${(found.exact ? best.offset : 0) * 100}%`);
+        el.dataset.resume = "shown";
+        return;
+      }
       const target = scrollTargetFor(
         window.scrollY,
         el.getBoundingClientRect(),
@@ -172,11 +184,14 @@ export function ReadingTracker({ bookId, chapterId, saved, otherDevice }: Readin
     const measure = () => {
       // During navigation to another page the old blocks are detached; measuring them is meaningless.
       if (cancelled || !elements[0]?.isConnected) return;
-      current = pickCurrentBlock(
-        elements.length,
-        (i) => elements[i]?.getBoundingClientRect() ?? { top: 0, height: 0 },
-        line(),
-      );
+      const surface = getReadingSurface();
+      current = surface
+        ? surface.current()
+        : pickCurrentBlock(
+            elements.length,
+            (i) => elements[i]?.getBoundingClientRect() ?? { top: 0, height: 0 },
+            line(),
+          );
       if (!current || !engaged) return;
       const ref = refs[current.index];
       if (!ref) return;
@@ -197,7 +212,10 @@ export function ReadingTracker({ bookId, chapterId, saved, otherDevice }: Readin
         writeLocal(bookId, spot);
       }
       // Fade the "You stopped here" marker once the reader has moved on.
-      if (resumeEl?.dataset.resume === "shown" && restoreScrollY !== null) {
+      const surfaceNow = getReadingSurface();
+      if (resumeEl?.dataset.resume === "shown" && surfaceNow && restorePage !== null) {
+        if (surfaceNow.page() !== restorePage) resumeEl.dataset.resume = "faded";
+      } else if (resumeEl?.dataset.resume === "shown" && restoreScrollY !== null) {
         if (Math.abs(window.scrollY - restoreScrollY) > window.innerHeight * 0.6) {
           resumeEl.dataset.resume = "faded";
         }
@@ -249,7 +267,7 @@ export function ReadingTracker({ bookId, chapterId, saved, otherDevice }: Readin
           endedAt: new Date().toISOString(),
           startBlockId: session.startBlockId,
           endBlockId: spot.blockId,
-          activeSeconds: session.activeSeconds,
+          activeSeconds: Math.round(session.activeSeconds),
         },
         reads,
       };
@@ -321,6 +339,7 @@ export function ReadingTracker({ bookId, chapterId, saved, otherDevice }: Readin
       measure();
       for (const el of elements) observer.observe(el);
       window.addEventListener("scroll", onScroll, { passive: true });
+      window.addEventListener(SURFACE_MOVED, onScroll);
       for (const type of ["wheel", "touchstart", "keydown", "pointerdown"] as const) {
         window.addEventListener(type, onActivity, { passive: true });
       }
@@ -338,6 +357,7 @@ export function ReadingTracker({ bookId, chapterId, saved, otherDevice }: Readin
       observer.disconnect();
       if (frame) cancelAnimationFrame(frame);
       window.removeEventListener("scroll", onScroll);
+      window.removeEventListener(SURFACE_MOVED, onScroll);
       for (const type of ["wheel", "touchstart", "keydown", "pointerdown"] as const) {
         window.removeEventListener(type, onActivity);
       }

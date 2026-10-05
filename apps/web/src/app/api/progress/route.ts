@@ -27,7 +27,8 @@ const Body = z.object({
       endedAt: isoTime,
       startBlockId: id,
       endBlockId: id,
-      activeSeconds: z.int().min(0).max(86_400),
+      // Whole seconds in the database; a fractional value from the browser is rounded, not rejected.
+      activeSeconds: z.number().min(0).max(86_400).transform(Math.round),
     })
     .optional(),
   reads: z.array(id).max(500).default([]),

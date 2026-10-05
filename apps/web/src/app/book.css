@@ -1,0 +1,309 @@
+/*
+ * Book mode. The chapter text flows into CSS columns, one column per page;
+ * the book shows one or two of them. Sizes come from --page-w, --page-h,
+ * --pad-x, --pad-top, --pad-bottom and --book-font set by BookView.
+ */
+
+:root,
+[data-theme="light"] {
+  --desk: #e9e5dc;
+  --page: #fdfcf9;
+}
+[data-theme="sepia"] {
+  --desk: #ddd0b2;
+  --page: #f6eedb;
+}
+[data-theme="dark"] {
+  --desk: #0c0b0a;
+  --page: #1b1a18;
+}
+@media (prefers-color-scheme: dark) {
+  [data-theme="system"] {
+    --desk: #0c0b0a;
+    --page: #1b1a18;
+  }
+}
+
+html.book-mode,
+html.book-mode body {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+.book-desk {
+  position: fixed;
+  inset: 3.5rem 0 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.9rem;
+  background: var(--desk);
+}
+
+.book-stage {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.book {
+  position: relative;
+  width: calc(var(--page-w) * 2);
+  height: var(--page-h);
+  border-radius: 0.4rem;
+  background: var(--page);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--border) 70%, transparent),
+    0 2px 4px rgb(0 0 0 / 0.06),
+    0 28px 60px -18px rgb(0 0 0 / 0.38);
+  perspective: 2800px;
+  touch-action: none;
+  user-select: text;
+}
+.book[data-spread="false"] {
+  width: var(--page-w);
+}
+
+.book-window {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  background: var(--page);
+}
+
+/* The text, laid out as one column per page, one page width apart. */
+.book-flow.reader-body {
+  --reader-size: var(--book-font);
+  position: absolute;
+  top: var(--pad-top);
+  left: var(--pad-x);
+  width: calc(var(--page-w) - 2 * var(--pad-x));
+  height: calc(var(--page-h) - var(--pad-top) - var(--pad-bottom));
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  column-width: calc(var(--page-w) - 2 * var(--pad-x));
+  column-gap: calc(2 * var(--pad-x));
+  column-fill: auto;
+  orphans: 2;
+  widows: 2;
+  will-change: transform;
+}
+
+/* Keep figures, code, tables, diagrams and cards whole on one page. */
+.book-flow
+:is(
+  .reader-figure,
+  .reader-table,
+  .reader-example,
+  .reader-pre-wrap,
+  .reader-note,
+  .reader-sidebar,
+  .reader-epigraph,
+  .reader-chapter-title,
+  .diagram,
+  .in-short,
+  .chapter-nav
+) {
+  break-inside: avoid;
+}
+.book-flow :is(h1, h2, h3, h4) {
+  break-after: avoid;
+}
+.book-flow .reader-figure img {
+  width: auto;
+  max-width: 100%;
+  max-height: calc(var(--page-h) - var(--pad-top) - var(--pad-bottom) - 7em);
+  margin-inline: auto;
+}
+.book-flow .reader-chapter-title {
+  margin-top: 1.5em;
+}
+.book-flow .reader-references {
+  break-before: column;
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+/* Soft shadow down the middle of an open book. */
+.book-spine {
+  position: absolute;
+  inset: 0 auto 0 50%;
+  z-index: 2;
+  width: 5rem;
+  transform: translateX(-50%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(0 0 0 / 0.05) 38%,
+    rgb(0 0 0 / 0.16) 50%,
+    rgb(0 0 0 / 0.05) 62%,
+    transparent
+  );
+  pointer-events: none;
+}
+
+/* The page revealed underneath while a page turns. */
+.book-under {
+  position: absolute;
+  inset: 0 auto 0 0;
+  z-index: 3;
+  width: var(--page-w);
+  overflow: hidden;
+  background: var(--page);
+  pointer-events: none;
+}
+.book-under[data-side="right"] {
+  left: var(--page-w);
+}
+.book-under::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgb(0 0 0 / var(--shade, 0));
+}
+
+/* The turning page: a front and a back, rotating around the spine. */
+.book-flipper {
+  position: absolute;
+  inset: 0 auto 0 0;
+  z-index: 4;
+  width: var(--page-w);
+  transform-style: preserve-3d;
+  transform-origin: left center;
+  pointer-events: none;
+}
+.book-flipper[data-side="right"] {
+  left: var(--page-w);
+}
+.book-flipper[data-side="left"] {
+  transform-origin: right center;
+}
+.book-face {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--page);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  box-shadow: 0 0 24px rgb(0 0 0 / 0.12);
+}
+.book-face-back {
+  transform: rotateY(180deg);
+}
+.book-face::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgb(0 0 0 / var(--shade, 0)), transparent 70%);
+}
+.book-flipper[data-side="left"] .book-face-front::after,
+.book-face-back::after {
+  background: linear-gradient(270deg, rgb(0 0 0 / var(--shade, 0)), transparent 70%);
+}
+
+/* Arrows beside the book, and the page count below it. */
+.book-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 999px;
+  color: var(--text-muted);
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+.book-arrow:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+  color: var(--text);
+}
+.book-arrow:disabled {
+  opacity: 0.25;
+}
+
+.book-footer {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: min(calc(var(--page-w) * 2), 100vw - 2rem);
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+.book-desk:has(.book[data-spread="false"]) .book-footer {
+  width: min(var(--page-w), 100vw - 2rem);
+}
+.book-footer-label {
+  white-space: nowrap;
+}
+.book-progress {
+  flex: 1;
+  height: 3px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text) 10%, transparent);
+  overflow: hidden;
+}
+.book-progress span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.4s ease;
+}
+.book-footer-pages {
+  white-space: nowrap;
+}
+
+/* Phones: the page fills the screen; swipe or tap the edges to turn. */
+@media (max-width: 639px) {
+  .book-desk {
+    justify-content: flex-start;
+    gap: 0;
+  }
+  .book-arrow {
+    display: none;
+  }
+  .book {
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .book-footer {
+    height: 3rem;
+    padding: 0 1.1rem;
+    width: 100%;
+  }
+}
+
+/* Long code and wide tables can still be scrolled sideways inside a page. */
+.book .reader-table-scroll,
+.book .reader-pre-wrap {
+  touch-action: pan-x;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .book-progress span {
+    transition: none;
+  }
+}
+
+/* Hidden until the pages are measured, so nothing jumps on load. */
+.book-desk[data-ready="false"] > * {
+  visibility: hidden;
+}
+
+/* In book mode the top bar spans the same width as the book area. */
+html.book-mode .reader-bar {
+  max-width: none;
+  padding-inline: 1.25rem;
+}
+
+/* In book mode the "other device" banner sits under the top bar, clear of the page counter. */
+html.book-mode .resume-banner {
+  top: 4.25rem;
+  bottom: auto;
+}

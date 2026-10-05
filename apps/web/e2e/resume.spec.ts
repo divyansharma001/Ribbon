@@ -5,6 +5,11 @@ import { useDevice } from "./support/device";
 
 test.describe.configure({ mode: "serial" });
 
+// These tests cover the scrolling reader; book mode has its own tests in book.spec.ts.
+test.beforeEach(async ({ context }) => {
+  await context.addCookies([{ name: "ribbon-mode", value: "scroll", url: E2E_URL }]);
+});
+
 const CHAPTER = "/books/ddia-2e/ch06";
 
 /** Where the reading line sits inside the block it crosses, in page pixels. */
@@ -138,6 +143,42 @@ test("the progress API rejects bad input and never moves a position back in time
       .from(schema.readingPositions)
       .where(eq(schema.readingPositions.deviceId, device.id));
     expect(row?.blockId).toBe(second.id);
+  } finally {
+    await pool.end();
+  }
+});
+
+test("the progress API accepts reading time that is not a whole number of seconds", async ({
+  request,
+}) => {
+  // Regression: the browser counts reading time in tenths of a second. Saves with
+  // a value like 5.1 used to be rejected, so the reading spot was silently lost.
+  const { db, pool } = createDb(E2E_DATABASE_URL);
+  try {
+    const [block] = await db
+      .select({ id: schema.blocks.id, hash: schema.blocks.hash })
+      .from(schema.blocks)
+      .where(eq(schema.blocks.chapterId, "ch06"))
+      .limit(1);
+    if (!block) throw new Error("book not loaded");
+    const now = new Date().toISOString();
+    const res = await request.post("/api/progress", {
+      data: {
+        bookId: "ddia-2e",
+        chapterId: "ch06",
+        device: { id: "device-api-0004", label: "Test" },
+        position: { blockId: block.id, blockHash: block.hash, offset: 0, readAt: now },
+        session: {
+          id: crypto.randomUUID(),
+          startedAt: now,
+          endedAt: now,
+          startBlockId: block.id,
+          endBlockId: block.id,
+          activeSeconds: 5.1,
+        },
+      },
+    });
+    expect(res.status()).toBe(204);
   } finally {
     await pool.end();
   }

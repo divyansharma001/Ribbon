@@ -52,7 +52,7 @@ export function ReaderShell(props: ReaderShellProps) {
           barHidden ? "-translate-y-full" : "translate-y-0"
         }`}
       >
-        <div className="mx-auto flex h-14 max-w-5xl items-center gap-2 px-3 sm:px-5">
+        <div className="reader-bar mx-auto flex h-14 max-w-5xl items-center gap-2 px-3 sm:px-5">
           <Link
             href={`/books/${props.bookId}`}
             className="flex size-10 items-center justify-center rounded-full text-muted hover:bg-surface-muted hover:text-text"
