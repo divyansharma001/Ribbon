@@ -2,10 +2,12 @@ import type { Inline } from "@ribbon/book-schema";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Fragment } from "react";
 import { BlockView } from "@/components/reader/blocks";
 import { Inlines, noteDomId, type RenderContext } from "@/components/reader/inlines";
 import { ReaderShell } from "@/components/reader/reader-shell";
 import { ReadingTracker } from "@/components/reader/reading-tracker";
+import { diagramsFor } from "@/diagrams/registry";
 import {
   collectXrefTargets,
   getBook,
@@ -44,6 +46,19 @@ export default async function ChapterPage({ params }: PageProps<"/books/[bookId]
   ]);
   const ctx: RenderContext = { bookId, chapterId, anchors: await resolveAnchors(bookId, targets) };
 
+  // Ribbon diagrams, keyed by the block they follow.
+  const diagrams = new Map(diagramsFor(bookId, chapterId).map((d) => [d.afterBlockId, d]));
+  if (process.env.NODE_ENV !== "production") {
+    for (const d of diagrams.values()) {
+      const block = blocks.find((b) => b.id === d.afterBlockId);
+      if (!block || block.hash !== d.blockHash) {
+        console.warn(
+          `Diagram "${d.id}" anchor block ${d.afterBlockId} is missing or changed. Check its placement.`,
+        );
+      }
+    }
+  }
+
   const index = chapters.findIndex((c) => c.id === chapterId);
   const prev = chapters[index - 1];
   const next = chapters[index + 1];
@@ -58,19 +73,24 @@ export default async function ChapterPage({ params }: PageProps<"/books/[bookId]
       outline={chapter.outline}
     >
       <article className="reader-body px-5 pt-24 pb-16 sm:px-8" data-chapter={chapterId}>
-        {blocks.map((b) => (
-          <div
-            key={b.id}
-            id={b.id}
-            className="reader-block"
-            data-block-id={b.id}
-            data-hash={b.hash}
-            data-words={b.words}
-            data-section={b.sectionAnchor}
-          >
-            <BlockView block={b.data} ctx={ctx} />
-          </div>
-        ))}
+        {blocks.map((b) => {
+          const diagram = diagrams.get(b.id);
+          return (
+            <Fragment key={b.id}>
+              <div
+                id={b.id}
+                className="reader-block"
+                data-block-id={b.id}
+                data-hash={b.hash}
+                data-words={b.words}
+                data-section={b.sectionAnchor}
+              >
+                <BlockView block={b.data} ctx={ctx} />
+              </div>
+              {diagram && <diagram.Component />}
+            </Fragment>
+          );
+        })}
 
         {chapter.notes.length > 0 && (
           <section className="reader-references" aria-labelledby="references">

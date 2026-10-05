@@ -19,6 +19,10 @@
   --accent-text: #ffffff;
   --mark: #fff1b8;
   --focus: #a8323e;
+  --ok: #2f7d4f;
+  --ok-soft: #e3f1e8;
+  --warn: #a66a00;
+  --warn-soft: #fbefd6;
   color-scheme: light;
 }
 
@@ -34,6 +38,10 @@
   --accent-text: #ffffff;
   --mark: #f3dc9a;
   --focus: #9c3b2e;
+  --ok: #3f7343;
+  --ok-soft: #e0e6c9;
+  --warn: #9a5e0b;
+  --warn-soft: #efdcb4;
   color-scheme: light;
 }
 
@@ -49,6 +57,10 @@
   --accent-text: #141312;
   --mark: #4a4120;
   --focus: #e2737c;
+  --ok: #6cc28f;
+  --ok-soft: #1d3326;
+  --warn: #e7b25a;
+  --warn-soft: #3a2d15;
   color-scheme: dark;
 }
 
@@ -80,6 +92,8 @@
   --color-accent-soft: var(--accent-soft);
   --color-accent-text: var(--accent-text);
   --color-mark: var(--mark);
+  --color-ok: var(--ok);
+  --color-warn: var(--warn);
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-serif: var(--font-literata), ui-serif, Georgia, serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
