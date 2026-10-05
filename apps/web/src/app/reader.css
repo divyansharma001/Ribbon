@@ -6,6 +6,10 @@
 .reader-body {
   --reader-size: 19px;
   --reader-measure: 40rem;
+  /* Section colors. Only the bright theme gives each section its own. */
+  --sec: var(--accent);
+  --sec-soft: var(--accent-soft);
+  --sec-ink: var(--accent);
   max-width: var(--reader-measure);
   margin-inline: auto;
   font-family: var(--font-serif);

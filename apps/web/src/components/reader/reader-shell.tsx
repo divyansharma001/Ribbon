@@ -3,6 +3,7 @@
 import type { OutlineNode } from "@ribbon/book-schema";
 import Link from "next/link";
 import { type ReactNode, useEffect, useRef, useState } from "react";
+import { ThemePicker } from "@/components/theme-picker";
 
 interface ReaderShellProps {
   bookId: string;
@@ -59,6 +60,8 @@ export function ReaderShell(props: ReaderShellProps) {
           >
             <ChevronLeft />
           </Link>
+          {/* Balances the two buttons on the right so the title stays centered. */}
+          <span className="size-10 shrink-0" aria-hidden="true" />
           <div
             className={`min-w-0 flex-1 text-center transition-opacity duration-200 ${
               titleInView ? "opacity-0" : "opacity-100"
@@ -70,6 +73,7 @@ export function ReaderShell(props: ReaderShellProps) {
             </p>
             <p className="truncate text-sm font-medium">{props.chapterTitle}</p>
           </div>
+          <ThemePicker />
           <button
             type="button"
             onClick={() => dialog.current?.showModal()}

@@ -1,4 +1,4 @@
-import type { Inline } from "@ribbon/book-schema";
+import type { Inline, OutlineNode } from "@ribbon/book-schema";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -8,12 +8,15 @@ import { Inlines, noteDomId, type RenderContext } from "@/components/reader/inli
 import { ReaderShell } from "@/components/reader/reader-shell";
 import { ReadingTracker } from "@/components/reader/reading-tracker";
 import { diagramsFor } from "@/diagrams/registry";
+import { inShortFor } from "@/guides/in-short";
+import { InShortCard } from "@/guides/in-short-card";
 import {
   collectXrefTargets,
   getBook,
   getChapter,
   getChapterBlocks,
   getChapterList,
+  getSectionTerms,
   resolveAnchors,
 } from "@/lib/books";
 import { getResumeState } from "@/lib/reading/positions";
@@ -30,12 +33,13 @@ export async function generateMetadata({
 export default async function ChapterPage({ params }: PageProps<"/books/[bookId]/[chapterId]">) {
   const user = await requireUser();
   const { bookId, chapterId } = await params;
-  const [book, chapter, blocks, chapters, resume] = await Promise.all([
+  const [book, chapter, blocks, chapters, resume, terms] = await Promise.all([
     getBook(bookId),
     getChapter(bookId, chapterId),
     getChapterBlocks(bookId, chapterId),
     getChapterList(bookId),
     getResumeState(user.id, bookId),
+    getSectionTerms(bookId, chapterId),
   ]);
   if (!book || !chapter) notFound();
 
@@ -45,6 +49,10 @@ export default async function ChapterPage({ params }: PageProps<"/books/[bookId]
     { id: "notes", type: "paragraph", content: noteInlines },
   ]);
   const ctx: RenderContext = { bookId, chapterId, anchors: await resolveAnchors(bookId, targets) };
+
+  // Each top-level section gets a color number (the bright theme colors by it).
+  const sectionColor = sectionColors(chapter.outline);
+  const inShort = inShortFor(bookId, chapterId);
 
   // Ribbon diagrams, keyed by the block they follow.
   const diagrams = new Map(diagramsFor(bookId, chapterId).map((d) => [d.afterBlockId, d]));
@@ -75,6 +83,7 @@ export default async function ChapterPage({ params }: PageProps<"/books/[bookId]
       <article className="reader-body px-5 pt-24 pb-16 sm:px-8" data-chapter={chapterId}>
         {blocks.map((b) => {
           const diagram = diagrams.get(b.id);
+          const summary = b.data.type === "heading" ? inShort[b.data.anchor] : undefined;
           return (
             <Fragment key={b.id}>
               <div
@@ -84,10 +93,20 @@ export default async function ChapterPage({ params }: PageProps<"/books/[bookId]
                 data-hash={b.hash}
                 data-words={b.words}
                 data-section={b.sectionAnchor}
+                data-sec={sectionColor.get(b.sectionAnchor)}
               >
-                <BlockView block={b.data} ctx={ctx} />
+                <BlockView block={b.data} ctx={{ ...ctx, terms: terms.get(b.sectionAnchor) }} />
               </div>
-              {diagram && <diagram.Component />}
+              {summary && (
+                <div data-sec={sectionColor.get(b.sectionAnchor)}>
+                  <InShortCard summary={summary} />
+                </div>
+              )}
+              {diagram && (
+                <div data-sec={sectionColor.get(b.sectionAnchor)}>
+                  <diagram.Component />
+                </div>
+              )}
             </Fragment>
           );
         })}
@@ -133,4 +152,17 @@ export default async function ChapterPage({ params }: PageProps<"/books/[bookId]
       />
     </ReaderShell>
   );
+}
+
+/** Maps every section anchor to its top-level section's color number (0-5). */
+function sectionColors(outline: OutlineNode[]): Map<string, string> {
+  const colors = new Map<string, string>();
+  const mark = (node: OutlineNode, color: string) => {
+    colors.set(node.anchor, color);
+    for (const child of node.children) mark(child, color);
+  };
+  outline.forEach((node, i) => {
+    mark(node, String(i % 6));
+  });
+  return colors;
 }

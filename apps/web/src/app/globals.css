@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "./reader.css";
+@import "./bright.css";
 
 /*
  * Design tokens. Three reading themes (light, sepia, dark), chosen with
@@ -23,6 +24,44 @@
   --ok-soft: #e3f1e8;
   --warn: #a66a00;
   --warn-soft: #fbefd6;
+  color-scheme: light;
+}
+
+[data-theme="bright"] {
+  --bg: #fffcf6;
+  --surface: #ffffff;
+  --surface-muted: #f5f1ff;
+  --text: #2b2540;
+  --text-muted: #6b6582;
+  --border: #ebe5f4;
+  --accent: #6d4aff;
+  --accent-soft: #efeaff;
+  --accent-text: #ffffff;
+  --mark: #fff1a8;
+  --focus: #6d4aff;
+  --ok: #1d8a4b;
+  --ok-soft: #e1f5e8;
+  --warn: #b26a00;
+  --warn-soft: #fff0d4;
+  /* Section colors: main color, soft background, and a darker shade for text on that background. */
+  --sec-0: #6d4aff;
+  --sec-0-soft: #efeaff;
+  --sec-0-ink: #5233d6;
+  --sec-1: #1f7ae0;
+  --sec-1-soft: #e5f0fd;
+  --sec-1-ink: #1560b8;
+  --sec-2: #0b9b8a;
+  --sec-2-soft: #dff4f0;
+  --sec-2-ink: #07776a;
+  --sec-3: #e0712c;
+  --sec-3-soft: #fdece0;
+  --sec-3-ink: #ad4f15;
+  --sec-4: #d43f8d;
+  --sec-4-soft: #fce7f1;
+  --sec-4-ink: #a82a6c;
+  --sec-5: #2f9e44;
+  --sec-5-soft: #e3f4e6;
+  --sec-5-ink: #237733;
   color-scheme: light;
 }
 
@@ -96,6 +135,7 @@
   --color-warn: var(--warn);
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-serif: var(--font-literata), ui-serif, Georgia, serif;
+  --font-rounded: var(--font-nunito), ui-rounded, ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 }
 
@@ -151,4 +191,19 @@ body {
 }
 .contents-drawer::backdrop {
   background: rgb(0 0 0 / 0.35);
+}
+
+/* Theme menu: a native popover under the top bar's "Aa" button. */
+.theme-menu {
+  position: fixed;
+  inset: 3.75rem 0.75rem auto auto;
+  width: 13.5rem;
+  margin: 0;
+  padding: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font-sans);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 0.14);
 }
