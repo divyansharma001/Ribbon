@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import { isTheme, THEME_COOKIE, THEME_LABELS, THEMES, type Theme } from "@/lib/themes";
 
 const SWATCHES: Record<Theme, string> = {
-  bright: "linear-gradient(135deg, #6d4aff, #d43f8d 55%, #e0712c)",
   light: "#fbfaf7",
   sepia: "#f4ecd8",
   dark: "#141312",

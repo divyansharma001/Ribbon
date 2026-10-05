@@ -139,33 +139,3 @@ export function collectXrefTargets(blocks: readonly Block[]): string[] {
   blocks.forEach(visit);
   return [...targets];
 }
-
-/**
- * Index terms per section for one chapter, lower-cased. The book puts a term
- * in italics where it explains it, and the index marker for it sits somewhere
- * in the same section. We use these to tell key terms apart from italics used
- * for emphasis.
- */
-export async function getSectionTerms(
-  bookId: string,
-  chapterId: string,
-): Promise<Map<string, Set<string>>> {
-  const rows = await db
-    .select({ section: schema.blocks.sectionAnchor, primary: schema.indexTerms.primary })
-    .from(schema.indexTerms)
-    .innerJoin(
-      schema.blocks,
-      and(
-        eq(schema.blocks.bookId, schema.indexTerms.bookId),
-        eq(schema.blocks.id, schema.indexTerms.blockId),
-      ),
-    )
-    .where(and(eq(schema.indexTerms.bookId, bookId), eq(schema.blocks.chapterId, chapterId)));
-  const terms = new Map<string, Set<string>>();
-  for (const r of rows) {
-    const set = terms.get(r.section) ?? new Set<string>();
-    set.add(r.primary.toLowerCase());
-    terms.set(r.section, set);
-  }
-  return terms;
-}

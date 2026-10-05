@@ -5,11 +5,7 @@
 
 .reader-body {
   --reader-size: 19px;
-  --reader-measure: 40rem;
-  /* Section colors. Only the bright theme gives each section its own. */
-  --sec: var(--accent);
-  --sec-soft: var(--accent-soft);
-  --sec-ink: var(--accent);
+  --reader-measure: 46rem;
   max-width: var(--reader-measure);
   margin-inline: auto;
   font-family: var(--font-serif);
@@ -507,4 +503,44 @@
 }
 .resume-banner-jump:hover {
   filter: brightness(1.08);
+}
+
+/* "In short": Ribbon's plain-English summary at the start of a section. */
+.in-short {
+  margin-block: 0.2em 1.6em;
+  padding: 0.95em 1.15em 1em;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background: var(--surface);
+  font-family: var(--font-sans);
+  font-size: 0.8em;
+  line-height: 1.6;
+  hyphens: manual;
+}
+.in-short .in-short-label {
+  margin: 0 0 0.35em;
+  font-size: 0.82em;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.in-short .in-short-text {
+  margin: 0;
+  color: var(--text);
+}
+.in-short-terms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4em;
+  margin: 0.75em 0 0;
+  padding: 0;
+  list-style: none;
+}
+.in-short-terms li {
+  padding: 0.05em 0.55em;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.88em;
+  color: var(--text-muted);
 }

@@ -1,4 +1,4 @@
-import type { Inline, OutlineNode } from "@ribbon/book-schema";
+import type { Inline } from "@ribbon/book-schema";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -16,7 +16,6 @@ import {
   getChapter,
   getChapterBlocks,
   getChapterList,
-  getSectionTerms,
   resolveAnchors,
 } from "@/lib/books";
 import { getResumeState } from "@/lib/reading/positions";
@@ -33,13 +32,12 @@ export async function generateMetadata({
 export default async function ChapterPage({ params }: PageProps<"/books/[bookId]/[chapterId]">) {
   const user = await requireUser();
   const { bookId, chapterId } = await params;
-  const [book, chapter, blocks, chapters, resume, terms] = await Promise.all([
+  const [book, chapter, blocks, chapters, resume] = await Promise.all([
     getBook(bookId),
     getChapter(bookId, chapterId),
     getChapterBlocks(bookId, chapterId),
     getChapterList(bookId),
     getResumeState(user.id, bookId),
-    getSectionTerms(bookId, chapterId),
   ]);
   if (!book || !chapter) notFound();
 
@@ -50,8 +48,6 @@ export default async function ChapterPage({ params }: PageProps<"/books/[bookId]
   ]);
   const ctx: RenderContext = { bookId, chapterId, anchors: await resolveAnchors(bookId, targets) };
 
-  // Each top-level section gets a color number (the bright theme colors by it).
-  const sectionColor = sectionColors(chapter.outline);
   const inShort = inShortFor(bookId, chapterId);
 
   // Ribbon diagrams, keyed by the block they follow.
@@ -93,20 +89,11 @@ export default async function ChapterPage({ params }: PageProps<"/books/[bookId]
                 data-hash={b.hash}
                 data-words={b.words}
                 data-section={b.sectionAnchor}
-                data-sec={sectionColor.get(b.sectionAnchor)}
               >
-                <BlockView block={b.data} ctx={{ ...ctx, terms: terms.get(b.sectionAnchor) }} />
+                <BlockView block={b.data} ctx={ctx} />
               </div>
-              {summary && (
-                <div data-sec={sectionColor.get(b.sectionAnchor)}>
-                  <InShortCard summary={summary} />
-                </div>
-              )}
-              {diagram && (
-                <div data-sec={sectionColor.get(b.sectionAnchor)}>
-                  <diagram.Component />
-                </div>
-              )}
+              {summary && <InShortCard summary={summary} />}
+              {diagram && <diagram.Component />}
             </Fragment>
           );
         })}
@@ -152,17 +139,4 @@ export default async function ChapterPage({ params }: PageProps<"/books/[bookId]
       />
     </ReaderShell>
   );
-}
-
-/** Maps every section anchor to its top-level section's color number (0-5). */
-function sectionColors(outline: OutlineNode[]): Map<string, string> {
-  const colors = new Map<string, string>();
-  const mark = (node: OutlineNode, color: string) => {
-    colors.set(node.anchor, color);
-    for (const child of node.children) mark(child, color);
-  };
-  outline.forEach((node, i) => {
-    mark(node, String(i % 6));
-  });
-  return colors;
 }

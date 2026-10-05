@@ -1,4 +1,4 @@
-import { type Inline, inlineText } from "@ribbon/book-schema";
+import type { Inline } from "@ribbon/book-schema";
 import type { ReactNode } from "react";
 
 export interface RenderContext {
@@ -6,27 +6,6 @@ export interface RenderContext {
   chapterId: string;
   /** Cross-link target anchor -> where it lives. */
   anchors: Map<string, { chapterId: string; blockId: string }>;
-  /** Index terms of the current section, lower-cased. Italic text matching one is a key term. */
-  terms?: ReadonlySet<string> | undefined;
-}
-
-/** True when italic text names one of the section's index terms, e.g. "Replication" or "followers". */
-export function isKeyTerm(text: string, terms: ReadonlySet<string> | undefined): boolean {
-  if (!terms || terms.size === 0) return false;
-  const t = text
-    .trim()
-    .toLowerCase()
-    .replace(/^[“"']|[”"']$/g, "");
-  if (t.length < 2 || t.split(/\s+/).length > 6) return false;
-  const forms = [t, t.replace(/(es|s)$/, ""), `${t}s`];
-  for (const term of terms) {
-    for (const f of forms) {
-      if (term === f || term.startsWith(`${f} (`) || term.startsWith(`${f},`)) return true;
-      // A shorter form of a longer term: "leader-based" for "leader-based replication".
-      if (f.length >= 4 && term.startsWith(`${f} `)) return true;
-    }
-  }
-  return false;
 }
 
 /** Page link for a cross-reference target. Same-chapter links stay on the page. */
@@ -53,10 +32,7 @@ function renderInline(node: Inline, key: number, ctx: RenderContext): ReactNode 
       return <br key={key} />;
     case "em":
       return (
-        <em
-          key={key}
-          className={isKeyTerm(inlineText(node.children), ctx.terms) ? "reader-term" : undefined}
-        >
+        <em key={key}>
           <Inlines nodes={node.children} ctx={ctx} />
         </em>
       );

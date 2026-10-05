@@ -1,11 +1,10 @@
 /** Reading themes. Shared by the server (first paint) and the theme picker. */
-export const THEMES = ["bright", "light", "sepia", "dark", "system"] as const;
+export const THEMES = ["system", "light", "sepia", "dark"] as const;
 export type Theme = (typeof THEMES)[number];
-export const DEFAULT_THEME: Theme = "bright";
+export const DEFAULT_THEME: Theme = "system";
 export const THEME_COOKIE = "ribbon-theme";
 
 export const THEME_LABELS: Record<Theme, string> = {
-  bright: "Bright",
   light: "Light",
   sepia: "Sepia",
   dark: "Dark",

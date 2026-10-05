@@ -1,15 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Literata, Nunito } from "next/font/google";
+import { Inter, Literata } from "next/font/google";
 import { getThemeCookie } from "@/lib/theme";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
-const nunito = Nunito({
-  subsets: ["latin"],
-  variable: "--font-nunito",
-  style: ["normal", "italic"],
-  display: "swap",
-});
 const literata = Literata({
   subsets: ["latin"],
   variable: "--font-literata",
@@ -35,7 +29,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       data-theme={theme}
-      className={`${inter.variable} ${literata.variable} ${nunito.variable}`}
+      className={`${inter.variable} ${literata.variable}`}
       suppressHydrationWarning
     >
       <body className="bg-bg text-text">{children}</body>
