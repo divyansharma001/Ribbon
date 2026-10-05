@@ -107,6 +107,7 @@
 .flow {
   position: relative;
   width: 100%;
+  aspect-ratio: var(--flow-aspect);
 }
 .flow-lines {
   position: absolute;
@@ -155,6 +156,7 @@
   color: var(--accent);
 }
 .flow-node-label {
+  white-space: pre-line;
   font-size: 12.5px;
   font-weight: 500;
   line-height: 1.15;
@@ -229,15 +231,18 @@
 }
 
 @media (max-width: 640px) {
+  .flow {
+    aspect-ratio: var(--flow-aspect-phone);
+  }
   .diagram-stage {
     padding: 0.8rem 0.6rem;
   }
   .flow-node {
-    width: 3.9rem;
-    padding: 0.35rem 0.15rem;
+    width: 4.4rem;
+    padding: 0.35rem 0.3rem;
   }
   .flow-node-label {
-    font-size: 11px;
+    font-size: 10.5px;
   }
   .flow-node-icon svg {
     width: 1.15rem;
@@ -351,4 +356,284 @@
   .flow-badge {
     animation: none;
   }
+}
+
+/* ---------- Shared bits for Chapter 1 diagrams ---------- */
+
+.diagram-slider {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.diagram-slider input {
+  width: 8rem;
+  accent-color: var(--accent);
+}
+
+.lake-holds {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.6rem;
+  font-size: 12.5px;
+}
+.lake-holds-label {
+  color: var(--text-muted);
+}
+.lake-chip {
+  padding: 0.15rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+}
+
+/* Elasticity chart */
+.elastic-chart {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.elastic-axis,
+.elastic-tag {
+  fill: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 3.2px;
+}
+.elastic-load {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 0.9;
+  stroke-linejoin: round;
+}
+.elastic-cap {
+  fill: none;
+  stroke: var(--text);
+  stroke-width: 0.6;
+  stroke-dasharray: 1.5 1;
+}
+.elastic-idle {
+  fill: color-mix(in srgb, var(--warn) 22%, transparent);
+  stroke: none;
+}
+.elastic-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 0.5rem;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+.elastic-key::before {
+  content: "";
+  display: inline-block;
+  width: 0.9rem;
+  height: 0.55rem;
+  margin-right: 0.4rem;
+  border-radius: 2px;
+  vertical-align: middle;
+}
+.elastic-key.is-load::before {
+  height: 2px;
+  background: var(--accent);
+}
+.elastic-key.is-cap::before {
+  height: 0;
+  border-top: 2px dashed var(--text);
+}
+.elastic-key.is-idle::before {
+  background: color-mix(in srgb, var(--warn) 30%, transparent);
+}
+
+/* Storage and compute */
+.sc-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.9rem;
+}
+@media (max-width: 560px) {
+  .sc-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.sc-panel {
+  display: flex;
+  flex-direction: column;
+  padding: 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 0.8rem;
+  background: var(--surface-muted);
+}
+.sc-title {
+  margin: 0 0 0.6rem;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.sc-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 9.5rem;
+}
+.sc-machine {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  width: 9rem;
+  padding: 0.6rem;
+  border: 1.5px solid var(--border);
+  border-radius: 0.7rem;
+  background: var(--surface);
+  transition:
+    width 0.4s ease,
+    border-color 0.3s,
+    opacity 0.3s;
+}
+.sc-machine.is-big {
+  width: 12rem;
+}
+.sc-machine[data-state="down"],
+.sc-node[data-state="down"] {
+  border-color: #d0444a;
+  opacity: 0.55;
+}
+.sc-part,
+.sc-node,
+.sc-store {
+  padding: 0.35rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--surface);
+  font-size: 12.5px;
+  text-align: center;
+}
+.sc-disk,
+.sc-store {
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+}
+.sc-nodes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.35rem;
+}
+.sc-node {
+  transition:
+    opacity 0.3s,
+    border-color 0.3s;
+}
+.sc-node.is-new {
+  border-color: var(--ok);
+  animation: flow-pop 0.35s ease-out;
+}
+.sc-link {
+  width: 2px;
+  height: 1.1rem;
+  background: repeating-linear-gradient(to bottom, var(--text-muted) 0 3px, transparent 3px 6px);
+}
+.sc-store {
+  width: 100%;
+  max-width: 13rem;
+}
+.sc-flag {
+  position: absolute;
+  top: -0.6rem;
+  right: -0.5rem;
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, #d0444a 18%, var(--surface));
+  color: #d0444a;
+  font-size: 11px;
+  font-weight: 600;
+}
+.sc-flag.is-warn {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+.diagram p.sc-note {
+  margin: 0.6rem 0 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text);
+  text-wrap: pretty;
+}
+
+/* Function call vs network call */
+.race {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+.race-lane {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.race-label {
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.race-track {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 2.4rem;
+  padding: 0 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-muted);
+}
+.race-end {
+  z-index: 1;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.race-dot {
+  position: absolute;
+  top: 50%;
+  left: 4.2rem;
+  width: 0.85rem;
+  height: 0.85rem;
+  margin-top: -0.425rem;
+  border-radius: 999px;
+  background: var(--accent);
+  transition:
+    left 0.65s cubic-bezier(0.45, 0, 0.2, 1),
+    opacity 0.4s;
+}
+.race-dot.at-there {
+  left: calc(100% - 5.3rem);
+}
+.race-dot.is-slow {
+  transition-duration: 1.5s, 0.4s;
+}
+.race-dot.is-local {
+  transition-duration: 0.12s;
+  background: var(--ok);
+}
+.race-dot.is-lost {
+  opacity: 0;
+  transition-duration: 1.4s, 1.2s;
+}
+.race-time {
+  min-height: 1.2em;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.race-tally {
+  align-self: center;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
 }

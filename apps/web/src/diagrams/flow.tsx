@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode, useEffect, useState } from "react";
+import { type CSSProperties, type ReactNode, useEffect, useState } from "react";
 
 /*
  * A boxes-and-arrows canvas. Positions are percentages of the stage, so the
@@ -39,6 +39,7 @@ export function FlowCanvas({
   badges = {},
   packet,
   aspect = "16 / 9",
+  phoneAspect = aspect,
   travelMs = 900,
 }: {
   nodes: FlowNode[];
@@ -49,13 +50,18 @@ export function FlowCanvas({
   badges?: Record<string, { text: string; tone: Tone }>;
   packet?: Packet | undefined;
   aspect?: string;
+  /** A taller shape for narrow screens, when the boxes would crowd at `aspect`. */
+  phoneAspect?: string;
   travelMs?: number;
 }) {
   const byId = new Map(nodes.map((n) => [n.id, n]));
   const activeEdge = packet ? `${packet.from}>${packet.to}` : null;
 
   return (
-    <div className="flow" style={{ aspectRatio: aspect }}>
+    <div
+      className="flow"
+      style={{ "--flow-aspect": aspect, "--flow-aspect-phone": phoneAspect } as CSSProperties}
+    >
       <svg
         className="flow-lines"
         viewBox="0 0 100 100"
