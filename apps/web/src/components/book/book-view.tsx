@@ -351,10 +351,50 @@ export function BookView({ chapterLabel, prevHref, nextHref, children }: BookVie
     [endTurn, reduced, setFlipper],
   );
 
+  /** An unanswered quick check on the pages shown now. The book won't turn forward past it. */
+  const openQuiz = useCallback((): HTMLElement | null => {
+    const g = geoRef.current;
+    const flow = flowRef.current;
+    if (!g || !flow) return null;
+    const first = pageRef.current;
+    const last = first + (g.spread ? 1 : 0);
+    for (const card of flow.querySelectorAll<HTMLElement>('.quiz-card[data-quiz-state="open"]')) {
+      if (fragmentsOf(card).some((f) => f.page >= first && f.page <= last)) return card;
+    }
+    return null;
+  }, [fragmentsOf]);
+
+  /** A small shake on the quick check, so it's clear why the page won't turn. */
+  const nudge = useCallback(
+    (card: HTMLElement) => {
+      hapticTap();
+      card.dataset.nudge = "true";
+      if (!reduced) {
+        card.animate(
+          [
+            { transform: "translateX(0)" },
+            { transform: "translateX(-7px)" },
+            { transform: "translateX(6px)" },
+            { transform: "translateX(-3px)" },
+            { transform: "translateX(0)" },
+          ],
+          { duration: 360, easing: "ease-out" },
+        );
+      }
+      window.setTimeout(() => delete card.dataset.nudge, 1600);
+    },
+    [reduced],
+  );
+
   /** Turns one page (or spread) forward or back, or moves to the next or previous chapter. */
   const turn = useCallback(
     (dir: 1 | -1) => {
       if (turning.current) return;
+      const quiz = dir === 1 ? openQuiz() : null;
+      if (quiz) {
+        nudge(quiz);
+        return;
+      }
       const t = beginTurn(dir);
       if (!t) {
         const href = dir === 1 ? nextHref : prevHref;
@@ -365,7 +405,7 @@ export function BookView({ chapterLabel, prevHref, nextHref, children }: BookVie
       hapticTap();
       animateTo(t.from, t.to, true);
     },
-    [animateTo, beginTurn, nextHref, prevHref, router],
+    [animateTo, beginTurn, nextHref, nudge, openQuiz, prevHref, router],
   );
 
   // ---------------------------------------------------------------------------
@@ -490,6 +530,12 @@ export function BookView({ chapterLabel, prevHref, nextHref, children }: BookVie
       // Start the turn once the finger clearly moves in the turning direction.
       const towards = d.dir === 1 ? -dx : dx;
       if (towards < 12) return;
+      const quiz = d.dir === 1 ? openQuiz() : null;
+      if (quiz) {
+        nudge(quiz);
+        drag.current = null;
+        return;
+      }
       const t = beginTurn(d.dir);
       if (!t) {
         drag.current = null;

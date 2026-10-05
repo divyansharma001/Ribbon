@@ -1,0 +1,265 @@
+/* Quick checks inside the chapter, and the review deck. */
+
+.quiz-card {
+  margin-block: 1.8em;
+  padding: 1rem 1.15rem 1.1rem;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--surface);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.5;
+  hyphens: manual;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+.quiz-card[data-quiz-state="open"] {
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+}
+.quiz-card[data-nudge="true"] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-soft);
+}
+
+.quiz-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  margin-bottom: 0.75rem;
+}
+.quiz-badge {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.quiz-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-weight: 600;
+  color: var(--text);
+}
+.quiz-count {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.quiz-card p.quiz-prompt,
+.review-card p.quiz-prompt {
+  margin: 0 0 0.8rem;
+  font-size: 15.5px;
+  font-weight: 500;
+  color: var(--text);
+  text-wrap: pretty;
+}
+.quiz-tf-label {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+.quiz-blank {
+  display: inline-block;
+  min-width: 4.5rem;
+  padding: 0 0.3rem;
+  border-bottom: 2px solid var(--accent);
+  text-align: center;
+}
+.quiz-blank.is-filled {
+  border-color: var(--ok);
+  color: var(--ok);
+  font-weight: 600;
+}
+
+.quiz-options,
+.quiz-match-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+.quiz-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+.quiz-option {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 2.6rem;
+  padding: 0.5rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 0.7rem;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14.5px;
+  text-align: left;
+  transition:
+    border-color 0.15s,
+    background 0.15s,
+    opacity 0.15s;
+}
+.quiz-option:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+.quiz-option:disabled {
+  cursor: default;
+}
+.quiz-option.is-right {
+  border-color: var(--ok);
+  background: var(--ok-soft);
+}
+.quiz-option.is-wrong {
+  border-color: #d0444a;
+  background: color-mix(in srgb, #d0444a 12%, transparent);
+}
+.quiz-option.is-dim {
+  opacity: 0.55;
+}
+.quiz-option.is-picked {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.quiz-option.is-paired:not(.is-right):not(.is-wrong) {
+  background: var(--surface-muted);
+}
+.quiz-tf {
+  min-width: 6.5rem;
+  justify-content: center;
+}
+.quiz-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.quiz-order-chosen {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin: 0 0 0.6rem;
+  padding: 0;
+  list-style: none;
+}
+.quiz-match {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.4fr);
+  gap: 0.5rem 0.6rem;
+}
+.quiz-meaning {
+  font-size: 13.5px;
+}
+.quiz-hint {
+  margin: 0.15rem 0 0.1rem;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+.quiz-correct-list {
+  margin: 0.6rem 0 0;
+  padding-left: 1.2rem;
+  font-size: 13.5px;
+  color: var(--text-muted);
+}
+ol.quiz-correct-list {
+  list-style: decimal;
+}
+
+.quiz-check,
+.quiz-next,
+.review-next {
+  margin-top: 0.8rem;
+  padding: 0.5rem 1.1rem;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.quiz-feedback {
+  margin-top: 0.85rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 0.7rem;
+  background: var(--surface-muted);
+}
+.quiz-question[data-result="right"] .quiz-verdict {
+  color: var(--ok);
+}
+.quiz-question[data-result="wrong"] .quiz-verdict {
+  color: #d0444a;
+}
+.quiz-feedback p {
+  margin: 0;
+}
+.quiz-feedback p.quiz-verdict {
+  font-weight: 700;
+  margin-bottom: 0.2rem;
+}
+.quiz-feedback p.quiz-explain {
+  font-size: 14px;
+  color: var(--text);
+  text-wrap: pretty;
+}
+.quiz-source {
+  display: inline-block;
+  margin-top: 0.4rem;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--accent);
+}
+.quiz-source:hover {
+  text-decoration: underline;
+}
+
+.quiz-done p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-muted);
+  text-wrap: pretty;
+}
+.quiz-done strong {
+  color: var(--text);
+}
+.quiz-card p.quiz-gate {
+  margin: 0.8rem 0 0;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+}
+/* The page only refuses to turn in book mode; in scroll mode there is nothing to gate. */
+html:not(.book-mode) .quiz-card p.quiz-gate {
+  display: none;
+}
+
+/* In a book page, keep checks compact. */
+.book-flow .quiz-card {
+  font-size: 14px;
+}
+.book-flow .quiz-option {
+  min-height: 2.3rem;
+  padding: 0.4rem 0.75rem;
+  font-size: 13.5px;
+}
+
+/* Full-width rows under the two match columns. */
+.quiz-match .quiz-hint,
+.quiz-match .quiz-check,
+.quiz-match .quiz-correct-list {
+  grid-column: 1 / -1;
+}
+.quiz-match .quiz-check {
+  justify-self: start;
+}

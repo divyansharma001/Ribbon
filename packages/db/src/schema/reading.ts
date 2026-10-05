@@ -163,3 +163,45 @@ export const streakSettings = pgTable(
   },
   (t) => [check("streak_settings_goal", sql`${t.goalMinutes} between 1 and 240`)],
 );
+
+/** The reader's answer to each quiz question (the first answer is what counts for XP). */
+export const quizAnswers = pgTable(
+  "quiz_answers",
+  {
+    userId: userId(),
+    bookId: bookId(),
+    questionId: text().notNull(),
+    chapterId: text().notNull(),
+    firstCorrect: boolean().notNull(),
+    attempts: integer().notNull().default(1),
+    firstAnsweredAt: createdAt(),
+    lastAnsweredAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.userId, t.bookId, t.questionId] }),
+    index("quiz_answers_chapter_idx").on(t.userId, t.bookId, t.chapterId),
+  ],
+);
+
+/**
+ * Spaced review: every answered question becomes a card that comes back
+ * after growing gaps (box 0 = 1 day ... box 5 = 80 days). A miss resets it.
+ */
+export const reviewCards = pgTable(
+  "review_cards",
+  {
+    userId: userId(),
+    bookId: bookId(),
+    questionId: text().notNull(),
+    box: integer().notNull().default(0),
+    dueAt: timestamp({ withTimezone: true }).notNull(),
+    reviews: integer().notNull().default(0),
+    lapses: integer().notNull().default(0),
+    lastReviewedAt: timestamp({ withTimezone: true }),
+  },
+  (t) => [
+    primaryKey({ columns: [t.userId, t.bookId, t.questionId] }),
+    index("review_cards_due_idx").on(t.userId, t.dueAt),
+    check("review_cards_box", sql`${t.box} between 0 and 5`),
+  ],
+);

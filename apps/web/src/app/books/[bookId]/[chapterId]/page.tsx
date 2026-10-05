@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Fragment } from "react";
 import { BookView } from "@/components/book/book-view";
+import { QuizCard } from "@/components/quiz/quiz-card";
 import { BlockView } from "@/components/reader/blocks";
 import { Inlines, noteDomId, type RenderContext } from "@/components/reader/inlines";
 import { ReaderShell } from "@/components/reader/reader-shell";
@@ -12,6 +13,7 @@ import { TodayRing } from "@/components/reader/today-ring";
 import { diagramsFor } from "@/diagrams/registry";
 import { inShortFor } from "@/guides/in-short";
 import { InShortCard } from "@/guides/in-short-card";
+import { quizzesFor } from "@/guides/quizzes";
 import {
   collectXrefTargets,
   getBook,
@@ -20,6 +22,7 @@ import {
   getChapterList,
   resolveAnchors,
 } from "@/lib/books";
+import { getChapterAnswers } from "@/lib/learning/data";
 import { getResumeState } from "@/lib/reading/positions";
 import { requireUser } from "@/lib/session";
 import { getStreak } from "@/lib/streaks/data";
@@ -36,7 +39,7 @@ export async function generateMetadata({
 export default async function ChapterPage({ params }: PageProps<"/books/[bookId]/[chapterId]">) {
   const user = await requireUser();
   const { bookId, chapterId } = await params;
-  const [book, chapter, blocks, chapters, resume, mode, streak] = await Promise.all([
+  const [book, chapter, blocks, chapters, resume, mode, streak, answers] = await Promise.all([
     getBook(bookId),
     getChapter(bookId, chapterId),
     getChapterBlocks(bookId, chapterId),
@@ -44,6 +47,7 @@ export default async function ChapterPage({ params }: PageProps<"/books/[bookId]
     getResumeState(user.id, bookId),
     getReadingModeCookie(),
     getStreak(user.id),
+    getChapterAnswers(user.id, bookId, chapterId),
   ]);
   if (!book || !chapter) notFound();
 
@@ -56,14 +60,17 @@ export default async function ChapterPage({ params }: PageProps<"/books/[bookId]
 
   const inShort = inShortFor(bookId, chapterId);
 
+  // Quick checks at the end of sections, keyed by the block they follow.
+  const quizzes = new Map(quizzesFor(bookId, chapterId).map((q) => [q.afterBlockId, q]));
+
   // Ribbon diagrams, keyed by the block they follow.
   const diagrams = new Map(diagramsFor(bookId, chapterId).map((d) => [d.afterBlockId, d]));
   if (process.env.NODE_ENV !== "production") {
-    for (const d of diagrams.values()) {
+    for (const d of [...diagrams.values(), ...quizzes.values()]) {
       const block = blocks.find((b) => b.id === d.afterBlockId);
       if (!block || block.hash !== d.blockHash) {
         console.warn(
-          `Diagram "${d.id}" anchor block ${d.afterBlockId} is missing or changed. Check its placement.`,
+          `"${d.id}" anchor block ${d.afterBlockId} is missing or changed. Check its placement.`,
         );
       }
     }
@@ -79,6 +86,7 @@ export default async function ChapterPage({ params }: PageProps<"/books/[bookId]
     <>
       {blocks.map((b) => {
         const diagram = diagrams.get(b.id);
+        const quiz = quizzes.get(b.id);
         const summary = b.data.type === "heading" ? inShort[b.data.anchor] : undefined;
         return (
           <Fragment key={b.id}>
@@ -94,6 +102,7 @@ export default async function ChapterPage({ params }: PageProps<"/books/[bookId]
             </div>
             {summary && <InShortCard summary={summary} />}
             {diagram && <diagram.Component />}
+            {quiz && <QuizCard set={quiz} bookId={bookId} answered={answers} />}
           </Fragment>
         );
       })}
