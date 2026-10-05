@@ -8,6 +8,7 @@ import { BlockView } from "@/components/reader/blocks";
 import { Inlines, noteDomId, type RenderContext } from "@/components/reader/inlines";
 import { ReaderShell } from "@/components/reader/reader-shell";
 import { ReadingTracker } from "@/components/reader/reading-tracker";
+import { TodayRing } from "@/components/reader/today-ring";
 import { diagramsFor } from "@/diagrams/registry";
 import { inShortFor } from "@/guides/in-short";
 import { InShortCard } from "@/guides/in-short-card";
@@ -21,6 +22,7 @@ import {
 } from "@/lib/books";
 import { getResumeState } from "@/lib/reading/positions";
 import { requireUser } from "@/lib/session";
+import { getStreak } from "@/lib/streaks/data";
 import { getReadingModeCookie } from "@/lib/theme";
 
 export async function generateMetadata({
@@ -34,13 +36,14 @@ export async function generateMetadata({
 export default async function ChapterPage({ params }: PageProps<"/books/[bookId]/[chapterId]">) {
   const user = await requireUser();
   const { bookId, chapterId } = await params;
-  const [book, chapter, blocks, chapters, resume, mode] = await Promise.all([
+  const [book, chapter, blocks, chapters, resume, mode, streak] = await Promise.all([
     getBook(bookId),
     getChapter(bookId, chapterId),
     getChapterBlocks(bookId, chapterId),
     getChapterList(bookId),
     getResumeState(user.id, bookId),
     getReadingModeCookie(),
+    getStreak(user.id),
   ]);
   if (!book || !chapter) notFound();
 
@@ -138,6 +141,14 @@ export default async function ChapterPage({ params }: PageProps<"/books/[bookId]
       chapterTitle={chapter.title}
       chapterLabel={chapterLabel}
       outline={chapter.outline}
+      today={
+        <TodayRing
+          baseMinutes={streak.todayMinutes}
+          goal={streak.goalMinutes}
+          streak={streak.current}
+          today={streak.today}
+        />
+      }
     >
       {mode === "book" ? (
         <BookView

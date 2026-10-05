@@ -7,6 +7,8 @@ import { SoundButton } from "@/components/sound/sound-button";
 import { ThemePicker } from "@/components/theme-picker";
 
 interface ReaderShellProps {
+  /** Today's goal ring in the top bar. */
+  today?: ReactNode;
   bookId: string;
   bookTitle: string;
   chapterId: string;
@@ -62,7 +64,7 @@ export function ReaderShell(props: ReaderShellProps) {
             <ChevronLeft />
           </Link>
           {/* Balances the buttons on the right so the title stays centered. */}
-          <span className="h-10 w-20 shrink-0" aria-hidden="true" />
+          <span className="h-10 w-[7.5rem] shrink-0 max-sm:w-20" aria-hidden="true" />
           <div
             className={`min-w-0 flex-1 text-center transition-opacity duration-200 ${
               titleInView ? "opacity-0" : "opacity-100"
@@ -74,6 +76,7 @@ export function ReaderShell(props: ReaderShellProps) {
             </p>
             <p className="truncate text-sm font-medium">{props.chapterTitle}</p>
           </div>
+          {props.today}
           <SoundButton />
           <ThemePicker />
           <button

@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  boolean,
   check,
   index,
   integer,
@@ -142,3 +143,23 @@ export const userSettings = pgTable("user_settings", {
   reader: jsonb().$type<ReaderSettings>().notNull(),
   updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
 });
+
+/** Daily goal and streak settings. Streaks themselves are worked out from reading_sessions. */
+export const streakSettings = pgTable(
+  "streak_settings",
+  {
+    userId: text()
+      .primaryKey()
+      .references(() => user.id, { onDelete: "cascade" }),
+    /** Minutes of active reading that complete a day. */
+    goalMinutes: integer().notNull().default(10),
+    /** Saturdays and Sundays never break the streak. */
+    weekendsOff: boolean().notNull().default(false),
+    /** IANA time zone (e.g. "Asia/Kolkata"); days start at midnight here. */
+    timeZone: text().notNull().default("UTC"),
+    /** "HH:MM" local time for the reminder email, or null for none. */
+    reminderAt: text(),
+    updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [check("streak_settings_goal", sql`${t.goalMinutes} between 1 and 240`)],
+);

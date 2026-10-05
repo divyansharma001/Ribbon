@@ -2,6 +2,7 @@
 @import "./reader.css";
 @import "./book.css";
 @import "./sound.css";
+@import "./home.css";
 
 /*
  * Design tokens. Three reading themes (light, sepia, dark), chosen with
@@ -203,7 +204,7 @@ body {
   margin: 0.4rem 0.4rem;
   background: var(--border);
 }
-.theme-menu .menu-switch {
+.menu-switch {
   position: relative;
   width: 2.1rem;
   height: 1.2rem;
@@ -211,7 +212,7 @@ body {
   background: var(--border);
   transition: background 0.15s;
 }
-.theme-menu .menu-switch::after {
+.menu-switch::after {
   content: "";
   position: absolute;
   top: 0.15rem;
@@ -223,9 +224,9 @@ body {
   box-shadow: 0 1px 2px rgb(0 0 0 / 0.25);
   transition: transform 0.15s;
 }
-.theme-menu .menu-switch[data-on="true"] {
+.menu-switch[data-on="true"] {
   background: var(--accent);
 }
-.theme-menu .menu-switch[data-on="true"]::after {
+.menu-switch[data-on="true"]::after {
   transform: translateX(0.9rem);
 }

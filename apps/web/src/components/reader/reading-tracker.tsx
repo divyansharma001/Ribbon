@@ -15,7 +15,7 @@ import {
   scrollTargetFor,
   timeAgo,
 } from "@/lib/reading/logic";
-import { getReadingSurface, SURFACE_MOVED } from "./surface";
+import { ACTIVE_SECONDS_EVENT, getReadingSurface, SURFACE_MOVED } from "./surface";
 
 export interface OtherDeviceSpot extends DevicePosition {
   chapterTitle: string;
@@ -309,6 +309,10 @@ export function ReadingTracker({ bookId, chapterId, saved, otherDevice }: Readin
       if (!engaged) return;
       if (now - lastActivity < ACTIVE_WINDOW_MS) session.activeSeconds += elapsed / 1000;
       session.activeSeconds = Math.round(session.activeSeconds * 10) / 10;
+      // Lets the top bar's goal ring fill live while reading.
+      window.dispatchEvent(
+        new CustomEvent(ACTIVE_SECONDS_EVENT, { detail: session.activeSeconds }),
+      );
       for (const i of onScreen) {
         const ref = refs[i];
         if (!ref || doneReads.has(ref.id)) continue;

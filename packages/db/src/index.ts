@@ -4,7 +4,21 @@ import { Pool } from "pg";
 import * as schema from "./schema/index.ts";
 
 // Query helpers, re-exported so every package uses this one copy of drizzle-orm.
-export { and, asc, count, desc, eq, gt, inArray, isNull, lt, max, or, sql } from "drizzle-orm";
+export {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  gt,
+  inArray,
+  isNotNull,
+  isNull,
+  lt,
+  max,
+  or,
+  sql,
+} from "drizzle-orm";
 export { schema };
 export type Db = NodePgDatabase<typeof schema>;
 
