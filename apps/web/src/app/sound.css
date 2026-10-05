@@ -1,0 +1,246 @@
+/* Sound panel (under the headphones button) and the live radio player. */
+
+.sound-menu {
+  width: 19.5rem;
+  max-height: calc(100dvh - 5rem);
+  overflow-y: auto;
+}
+.sound-menu section {
+  padding: 0 0.15rem;
+}
+.sound-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.3rem 0.6rem;
+}
+.sound-row input[type="range"] {
+  flex: 1;
+  min-width: 0;
+  accent-color: var(--accent);
+}
+.sound-row input[type="range"]:disabled {
+  opacity: 0.35;
+}
+.sound-chip {
+  flex-shrink: 0;
+  min-width: 6.6rem;
+  height: 2rem;
+  padding: 0 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+  text-align: left;
+  color: var(--text-muted);
+  transition:
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s;
+}
+.sound-chip:hover {
+  border-color: var(--accent);
+}
+.sound-chip.is-on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--text);
+}
+.sound-chip.small {
+  min-width: 0;
+  height: 1.75rem;
+  padding: 0 0.6rem;
+  font-size: 12px;
+}
+.sound-stations {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0 0.6rem 0.4rem;
+}
+.sound-stations .sound-chip {
+  min-width: 0;
+}
+.sound-label {
+  flex-shrink: 0;
+  min-width: 6.6rem;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.theme-menu .menu-segment.sound-segment {
+  grid-template-columns: repeat(3, 1fr);
+}
+.sound-note {
+  width: 100%;
+  margin: 0.2rem 0 0.3rem;
+  padding: 0 0.6rem;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+.sound-tracks {
+  max-height: 11rem;
+  margin: 0 0 0.4rem;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+.sound-tracks button {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.4rem 0.6rem;
+  border-radius: 0.5rem;
+  font-size: 13.5px;
+  text-align: left;
+}
+.sound-tracks button:hover {
+  background: var(--surface-muted);
+}
+.sound-tracks button.is-current {
+  color: var(--accent);
+  font-weight: 600;
+}
+.sound-track-icon {
+  width: 1rem;
+  font-size: 10px;
+  text-align: center;
+}
+.sound-timer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.6rem;
+}
+.sound-timer .sound-label {
+  min-width: 0;
+  margin-right: auto;
+}
+.sound-stop {
+  width: calc(100% - 1.2rem);
+  height: 2rem;
+  margin: 0.3rem 0.6rem 0.4rem;
+  border-radius: 0.6rem;
+  background: var(--surface-muted);
+  font-size: 13px;
+  font-weight: 500;
+}
+.sound-stop:hover {
+  color: var(--accent);
+}
+
+/* Little bars on the headphones button while something plays. */
+.sound-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 14px;
+}
+.sound-bars span {
+  width: 3px;
+  border-radius: 2px;
+  background: var(--accent);
+  animation: sound-bar 0.9s ease-in-out infinite;
+}
+.sound-bars span:nth-child(2) {
+  animation-delay: -0.3s;
+}
+.sound-bars span:nth-child(3) {
+  animation-delay: -0.6s;
+}
+@keyframes sound-bar {
+  0%,
+  100% {
+    height: 4px;
+  }
+  50% {
+    height: 14px;
+  }
+}
+
+/* Live radio: YouTube requires the player to stay visible and at least 200x200. */
+.live-dock {
+  position: fixed;
+  z-index: 45;
+  width: 22.25rem;
+  border: 1px solid var(--border);
+  border-radius: 0.9rem;
+  background: var(--surface);
+  box-shadow: 0 16px 40px rgb(0 0 0 / 0.28);
+  overflow: hidden;
+  font-family: var(--font-sans);
+}
+.live-dock[data-corner="bottom-left"] {
+  left: 1rem;
+  bottom: 1rem;
+}
+.live-dock[data-corner="bottom-right"] {
+  right: 1rem;
+  bottom: 1rem;
+}
+.live-dock[data-corner="top-left"] {
+  left: 1rem;
+  top: 4.25rem;
+}
+.live-dock[data-corner="top-right"] {
+  right: 1rem;
+  top: 4.25rem;
+}
+.live-dock iframe {
+  display: block;
+  width: 100%;
+  height: 12.5rem;
+  border: 0;
+}
+.live-dock-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 2.25rem;
+  padding: 0 0.4rem 0 0.75rem;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+.live-title {
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-weight: 500;
+  color: var(--text);
+}
+.live-dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 999px;
+  background: #e5484d;
+  box-shadow: 0 0 0 3px rgb(229 72 77 / 0.2);
+}
+.live-dock-bar button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 0.45rem;
+}
+.live-dock-bar button:hover {
+  background: var(--surface-muted);
+  color: var(--text);
+}
+@media (max-width: 639px) {
+  .live-dock {
+    width: calc(100vw - 1.5rem);
+    left: 0.75rem;
+    right: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sound-bars span {
+    animation: none;
+    height: 9px;
+  }
+}

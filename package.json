@@ -18,7 +18,8 @@
     "db:generate": "pnpm --filter @ribbon/db run generate",
     "db:migrate": "pnpm --filter @ribbon/db run migrate",
     "db:up": "docker compose up -d --wait",
-    "e2e": "pnpm --filter @ribbon/web e2e"
+    "e2e": "pnpm --filter @ribbon/web e2e",
+    "music": "pnpm --filter @ribbon/ingest run music"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.15",

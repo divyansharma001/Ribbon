@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Literata } from "next/font/google";
+import { LiveDock } from "@/components/sound/live-dock";
 import { getThemeCookie } from "@/lib/theme";
 import "./globals.css";
 
@@ -32,7 +33,10 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       className={`${inter.variable} ${literata.variable}`}
       suppressHydrationWarning
     >
-      <body className="bg-bg text-text">{children}</body>
+      <body className="bg-bg text-text">
+        {children}
+        <LiveDock />
+      </body>
     </html>
   );
 }

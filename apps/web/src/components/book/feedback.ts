@@ -7,6 +7,8 @@
  * desktop browsers do not expose haptics to web pages.
  */
 
+import { isPlaying } from "../sound/engine";
+
 const SOUND_KEY = "ribbon-page-sound";
 
 export function soundEnabled(): boolean {
@@ -52,8 +54,10 @@ export function schedulePageTurn(
   when: number,
   noise: AudioBuffer,
   random: () => number = Math.random,
+  level = 1,
 ): void {
-  const { peak, attack } = PAGE_TURN;
+  const { attack } = PAGE_TURN;
+  const peak = PAGE_TURN.peak * level;
   const duration = PAGE_TURN.duration * (0.92 + random() * 0.16);
   const end = when + duration;
 
@@ -109,7 +113,15 @@ export function playPageTurn(): void {
   audio ??= new AudioContext();
   noise ??= makeNoise(audio);
   if (audio.state === "suspended") void audio.resume();
-  schedulePageTurn(audio, audio.destination, audio.currentTime + 0.01, noise);
+  // Quieter while music or focus sounds are playing.
+  schedulePageTurn(
+    audio,
+    audio.destination,
+    audio.currentTime + 0.01,
+    noise,
+    Math.random,
+    isPlaying() ? 0.5 : 1,
+  );
 }
 
 /** A light tap, where the device and browser support it. */

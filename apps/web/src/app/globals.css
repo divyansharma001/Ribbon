@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "./reader.css";
 @import "./book.css";
+@import "./sound.css";
 
 /*
  * Design tokens. Three reading themes (light, sepia, dark), chosen with

@@ -6,7 +6,8 @@
     "ingest": "node src/cli.ts",
     "test": "vitest run",
     "typecheck": "tsc -p .",
-    "load": "node src/load-cli.ts"
+    "load": "node src/load-cli.ts",
+    "music": "node src/music-cli.ts"
   },
   "dependencies": {
     "@ribbon/book-schema": "workspace:*",
