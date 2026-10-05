@@ -19,5 +19,8 @@
   },
   "devDependencies": {
     "vitest": "5.0.3"
+  },
+  "exports": {
+    "./load": "./src/load.ts"
   }
 }

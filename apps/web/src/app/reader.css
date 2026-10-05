@@ -387,3 +387,120 @@
 .chapter-nav:hover {
   border-color: var(--accent);
 }
+
+/*
+ * "You stopped here": a thin bar beside the block, and a label at the exact
+ * line where you stopped (--resume-at, 0-100% down the block). On wide
+ * screens the label sits in the left margin; on narrow ones it is a small
+ * pill over the line. Both fade once you read on.
+ */
+.reader-block[data-resume]::before {
+  --dim: color-mix(in srgb, var(--accent) 30%, transparent);
+  content: "";
+  position: absolute;
+  top: 0.2em;
+  bottom: 0.2em;
+  left: -1rem;
+  width: 3px;
+  border-radius: 3px;
+  /* Faint along the block, bright at the line where you stopped. */
+  background: linear-gradient(
+    to bottom,
+    var(--dim) calc(var(--resume-at, 0%) - 1em),
+    var(--accent) calc(var(--resume-at, 0%) - 1em),
+    var(--accent) calc(var(--resume-at, 0%) + 0.6em),
+    var(--dim) calc(var(--resume-at, 0%) + 0.6em)
+  );
+  transition: opacity 0.6s ease;
+}
+.reader-block[data-resume]::after {
+  content: "You stopped here";
+  position: absolute;
+  top: var(--resume-at, 0%);
+  right: calc(100% + 1.75rem);
+  transform: translateY(-50%);
+  white-space: nowrap;
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+  pointer-events: none;
+  transition: opacity 0.6s ease;
+}
+.reader-block[data-resume="faded"]::before,
+.reader-block[data-resume="faded"]::after {
+  opacity: 0;
+}
+/* Not enough margin for the label: show it as a pill over the line. */
+@media (max-width: 1023px) {
+  .reader-block[data-resume]::before {
+    left: -0.75rem;
+  }
+  .reader-block[data-resume]::after {
+    right: auto;
+    left: 0;
+    padding: 0.4rem 0.6rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color: var(--accent-text);
+    box-shadow: 0 2px 8px rgb(0 0 0 / 0.15);
+    /* It sits over the text, so it only stays briefly. */
+    animation: resume-pill 3s ease forwards;
+  }
+}
+@keyframes resume-pill {
+  0%,
+  75% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Offer to jump to a newer spot from another device. */
+.resume-banner {
+  position: fixed;
+  z-index: 40;
+  left: 50%;
+  bottom: calc(1rem + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  width: min(36rem, calc(100vw - 1.5rem));
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.5rem 0.6rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font-sans);
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.06),
+    0 8px 24px rgb(0 0 0 / 0.12);
+  animation: resume-banner-in 0.3s ease both;
+}
+@keyframes resume-banner-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 0.5rem);
+  }
+}
+.resume-banner-jump {
+  display: inline-flex;
+  align-items: center;
+  height: 2.25rem;
+  padding: 0 0.9rem;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.resume-banner-jump:hover {
+  filter: brightness(1.08);
+}

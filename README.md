@@ -29,7 +29,8 @@ A personal book reader with exact "where was I" tracking, quizzes, an AI helper,
 ## Checks
 
 ```sh
-pnpm test
+pnpm test        # unit tests (needs the local Postgres for db tests: pnpm db:up)
+pnpm e2e         # browser tests against a production build and the test database
 pnpm typecheck
 pnpm lint
 ```

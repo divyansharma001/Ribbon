@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { BlockView } from "@/components/reader/blocks";
 import { Inlines, noteDomId, type RenderContext } from "@/components/reader/inlines";
 import { ReaderShell } from "@/components/reader/reader-shell";
+import { ReadingTracker } from "@/components/reader/reading-tracker";
 import {
   collectXrefTargets,
   getBook,
@@ -13,6 +14,7 @@ import {
   getChapterList,
   resolveAnchors,
 } from "@/lib/books";
+import { getResumeState } from "@/lib/reading/positions";
 import { requireUser } from "@/lib/session";
 
 export async function generateMetadata({
@@ -24,13 +26,14 @@ export async function generateMetadata({
 }
 
 export default async function ChapterPage({ params }: PageProps<"/books/[bookId]/[chapterId]">) {
-  await requireUser();
+  const user = await requireUser();
   const { bookId, chapterId } = await params;
-  const [book, chapter, blocks, chapters] = await Promise.all([
+  const [book, chapter, blocks, chapters, resume] = await Promise.all([
     getBook(bookId),
     getChapter(bookId, chapterId),
     getChapterBlocks(bookId, chapterId),
     getChapterList(bookId),
+    getResumeState(user.id, bookId),
   ]);
   if (!book || !chapter) notFound();
 
@@ -102,6 +105,12 @@ export default async function ChapterPage({ params }: PageProps<"/books/[bookId]
           )}
         </nav>
       </article>
+      <ReadingTracker
+        bookId={bookId}
+        chapterId={chapterId}
+        saved={resume.thisDevice}
+        otherDevice={resume.otherDevice}
+      />
     </ReaderShell>
   );
 }
