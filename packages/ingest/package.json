@@ -1,0 +1,19 @@
+{
+  "name": "@book-reader/ingest",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "ingest": "node src/cli.ts",
+    "test": "vitest run",
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "@book-reader/book-schema": "workspace:*",
+    "cheerio": "1.2.0",
+    "domhandler": "5.0.3",
+    "fflate": "0.8.3"
+  },
+  "devDependencies": {
+    "vitest": "5.0.3"
+  }
+}

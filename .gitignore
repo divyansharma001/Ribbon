@@ -1,0 +1,21 @@
+# Dependencies and build output
+node_modules/
+dist/
+.next/
+*.tsbuildinfo
+coverage/
+
+# Env files
+.env
+.env*.local
+
+# Book files are personal copies. Never commit them.
+*.pdf
+*.epub
+/books/
+
+# Generated book content (contains book text)
+/content/
+
+# OS
+.DS_Store
