@@ -1,0 +1,307 @@
+/* Book overview: progress and mastery for every chapter and section. */
+
+.ov-main {
+  max-width: 56rem;
+}
+
+.ov-crumbs {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.ov-crumbs a:hover {
+  color: var(--accent);
+}
+
+/* Header card */
+.ov-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.4rem;
+}
+.ov-hero h1 {
+  font-family: var(--font-serif);
+  font-size: clamp(1.6rem, 3.6vw, 2.2rem);
+  font-weight: 600;
+  line-height: 1.2;
+  text-wrap: balance;
+}
+.ov-hero-text p {
+  margin-top: 0.35rem;
+}
+.ov-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+.ov-stats > div {
+  padding: 0.75rem 0.9rem;
+  border-radius: 0.8rem;
+  background: var(--surface-muted);
+}
+.ov-stats dt {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.ov-stats dd {
+  margin-top: 0.15rem;
+  font-size: 1.35rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.ov-stat-of {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+@media (max-width: 640px) {
+  .ov-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.ov-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+}
+.ov-actions .home-button {
+  margin-top: 0;
+}
+.ov-continue {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ov-secondary {
+  padding: 0.5rem 1.05rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.ov-secondary:hover {
+  border-color: var(--accent);
+}
+
+/* Chapter list */
+.ov-list-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  margin: 0.75rem 0 0.75rem;
+}
+.ov-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+.ov-chapters {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.ov-chapter {
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--surface);
+  transition: border-color 0.15s;
+}
+.ov-chapter[open] {
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+}
+.ov-chapter summary {
+  display: grid;
+  grid-template-columns: 2.2rem 1fr auto;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.95rem 1.1rem;
+  cursor: pointer;
+  list-style: none;
+}
+.ov-chapter summary::-webkit-details-marker {
+  display: none;
+}
+.ov-num {
+  display: grid;
+  place-items: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 0.7rem;
+  background: var(--surface-muted);
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.ov-chapter-main {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+.ov-chapter-title {
+  font-weight: 600;
+  line-height: 1.3;
+  text-wrap: pretty;
+  transition: color 0.15s;
+}
+.ov-chapter summary:hover .ov-chapter-title {
+  color: var(--accent);
+}
+.ov-chapter-meta {
+  margin-top: 0.15rem;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+.ov-chapter-side {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.ov-pct {
+  width: 2.6rem;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--text-muted);
+}
+@media (max-width: 640px) {
+  .ov-chapter summary {
+    grid-template-columns: 2.2rem 1fr;
+    row-gap: 0.55rem;
+  }
+  .ov-chapter-side {
+    grid-column: 2;
+  }
+}
+
+.ov-chapter-body {
+  padding: 0 1.1rem 1rem calc(1.1rem + 2.2rem + 0.9rem);
+}
+@media (max-width: 640px) {
+  .ov-chapter-body {
+    padding-left: 1.1rem;
+  }
+}
+.ov-sections {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--border);
+}
+.ov-sections ul {
+  display: flex;
+  flex-direction: column;
+}
+.ov-section {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem 1rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+}
+.ov-section[data-depth="2"] {
+  padding-left: 1.1rem;
+}
+.ov-section-title {
+  min-width: 0;
+  flex: 1 1 14rem;
+  font-size: 14.5px;
+  text-wrap: pretty;
+}
+.ov-section[data-depth="1"] .ov-section-title {
+  font-weight: 500;
+}
+.ov-section[data-depth="2"] .ov-section-title {
+  color: var(--text-muted);
+}
+.ov-section-title:hover {
+  color: var(--accent);
+}
+.ov-section-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.ov-quiz {
+  font-variant-numeric: tabular-nums;
+}
+.ov-weak {
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: var(--warn-soft);
+  color: var(--warn);
+  font-weight: 600;
+}
+.ov-weak:hover {
+  text-decoration: underline;
+}
+.ov-open {
+  display: inline-block;
+  margin-top: 0.8rem;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--accent);
+}
+.ov-open:hover {
+  text-decoration: underline;
+}
+
+/* Small progress bar */
+.ov-bar {
+  display: inline-block;
+  width: 4.5rem;
+  height: 4px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text) 10%, transparent);
+  overflow: hidden;
+}
+.ov-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+}
+
+/* Mastery chips */
+.ov-chip {
+  display: inline-block;
+  min-width: 4.7rem;
+  padding: 0.12rem 0.55rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 600;
+  text-align: center;
+  white-space: nowrap;
+}
+.ov-legend .ov-chip {
+  min-width: 0;
+}
+.ov-chip[data-mastery="unread"] {
+  border-color: var(--border);
+  color: var(--text-muted);
+}
+.ov-chip[data-mastery="reading"] {
+  background: var(--surface-muted);
+  color: var(--text-muted);
+}
+.ov-chip[data-mastery="read"] {
+  background: var(--surface-muted);
+  color: var(--text);
+}
+.ov-chip[data-mastery="checked"] {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.ov-chip[data-mastery="mastered"] {
+  background: var(--ok-soft);
+  color: var(--ok);
+}
