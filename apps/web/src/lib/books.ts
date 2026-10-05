@@ -36,6 +36,15 @@ export const getChapterList = cache(
       .orderBy(asc(schema.chapters.position)),
 );
 
+/** The book's glossary, in book order. */
+export const getGlossary = cache(async (bookId: string) =>
+  db
+    .select({ term: schema.glossaryEntries.term, body: schema.glossaryEntries.body })
+    .from(schema.glossaryEntries)
+    .where(eq(schema.glossaryEntries.bookId, bookId))
+    .orderBy(asc(schema.glossaryEntries.position)),
+);
+
 export const getChapter = cache(async (bookId: string, chapterId: string) => {
   const [chapter] = await db
     .select()

@@ -5,8 +5,9 @@ import { notFound } from "next/navigation";
 import { Fragment } from "react";
 import { BookView } from "@/components/book/book-view";
 import { QuizCard } from "@/components/quiz/quiz-card";
-import { BlockView } from "@/components/reader/blocks";
-import { Inlines, noteDomId, type RenderContext } from "@/components/reader/inlines";
+import { Blocks, BlockView } from "@/components/reader/blocks";
+import { Inlines, noteDomId, type RenderContext, termDomId } from "@/components/reader/inlines";
+import { ReaderPopups } from "@/components/reader/reader-popups";
 import { ReaderShell } from "@/components/reader/reader-shell";
 import { ReadingTracker } from "@/components/reader/reading-tracker";
 import { TodayRing } from "@/components/reader/today-ring";
@@ -20,8 +21,10 @@ import {
   getChapter,
   getChapterBlocks,
   getChapterList,
+  getGlossary,
   resolveAnchors,
 } from "@/lib/books";
+import { glossaryLookup, termsUsed } from "@/lib/glossary";
 import { getChapterAnswers } from "@/lib/learning/data";
 import { getResumeState } from "@/lib/reading/positions";
 import { requireUser } from "@/lib/session";
@@ -39,24 +42,42 @@ export async function generateMetadata({
 export default async function ChapterPage({ params }: PageProps<"/books/[bookId]/[chapterId]">) {
   const user = await requireUser();
   const { bookId, chapterId } = await params;
-  const [book, chapter, blocks, chapters, resume, mode, streak, answers] = await Promise.all([
-    getBook(bookId),
-    getChapter(bookId, chapterId),
-    getChapterBlocks(bookId, chapterId),
-    getChapterList(bookId),
-    getResumeState(user.id, bookId),
-    getReadingModeCookie(),
-    getStreak(user.id),
-    getChapterAnswers(user.id, bookId, chapterId),
-  ]);
+  const [book, chapter, blocks, chapters, resume, mode, streak, answers, glossary] =
+    await Promise.all([
+      getBook(bookId),
+      getChapter(bookId, chapterId),
+      getChapterBlocks(bookId, chapterId),
+      getChapterList(bookId),
+      getResumeState(user.id, bookId),
+      getReadingModeCookie(),
+      getStreak(user.id),
+      getChapterAnswers(user.id, bookId, chapterId),
+      getGlossary(bookId),
+    ]);
   if (!book || !chapter) notFound();
+
+  // Glossary terms named in this chapter. Their definitions ride along, hidden, for the popups.
+  const lookup = glossaryLookup(glossary.map((g) => g.term));
+  const used = termsUsed(
+    blocks.map((b) => b.data),
+    lookup,
+  );
+  const definitions = glossary.filter((g) => used.has(g.term));
 
   const noteInlines: Inline[] = chapter.notes.flatMap((n) => n.content);
   const targets = collectXrefTargets([
     ...blocks.map((b) => b.data),
+    ...definitions.flatMap((d) => d.body),
     { id: "notes", type: "paragraph", content: noteInlines },
   ]);
-  const ctx: RenderContext = { bookId, chapterId, anchors: await resolveAnchors(bookId, targets) };
+  const ctx: RenderContext = {
+    bookId,
+    chapterId,
+    anchors: await resolveAnchors(bookId, targets),
+    glossary: lookup,
+  };
+  // Definitions themselves don't open more popups.
+  const plainCtx: RenderContext = { bookId, chapterId, anchors: ctx.anchors };
 
   const inShort = inShortFor(bookId, chapterId);
 
@@ -172,6 +193,14 @@ export default async function ChapterPage({ params }: PageProps<"/books/[bookId]
           {content}
         </article>
       )}
+      <div hidden>
+        {definitions.map((d) => (
+          <div key={d.term} id={termDomId(d.term)}>
+            <Blocks blocks={d.body} ctx={plainCtx} />
+          </div>
+        ))}
+      </div>
+      <ReaderPopups />
       <ReadingTracker
         bookId={bookId}
         chapterId={chapterId}

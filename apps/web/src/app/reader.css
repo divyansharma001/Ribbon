@@ -544,3 +544,109 @@
   font-size: 0.88em;
   color: var(--text-muted);
 }
+
+/* Glossary terms: the book's own italics, with a quiet dotted underline. */
+.reader-term {
+  hyphens: manual;
+  cursor: pointer;
+  text-decoration: underline dotted color-mix(in srgb, var(--accent) 70%, transparent);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 0.2em;
+  border-radius: 0.2em;
+}
+.reader-term:hover {
+  background: var(--accent-soft);
+}
+
+/* Citation and glossary popups. */
+.reader-popup {
+  position: fixed;
+  z-index: 60;
+  width: min(24rem, calc(100vw - 24px));
+  max-height: min(60vh, 26rem);
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: 0.85rem;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow:
+    0 12px 32px rgb(0 0 0 / 0.22),
+    0 2px 6px rgb(0 0 0 / 0.12);
+  font-family: var(--font-sans);
+  font-size: 14.5px;
+  line-height: 1.5;
+  animation: reader-popup-in 0.14s ease-out;
+}
+.reader-popup:focus {
+  outline: none;
+}
+@keyframes reader-popup-in {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+}
+.reader-popup-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.7rem 0.6rem 0 1rem;
+}
+.reader-popup-kind {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.reader-popup-title {
+  flex: 1;
+  font-weight: 600;
+}
+.reader-popup-close {
+  align-self: center;
+  width: 1.8rem;
+  height: 1.8rem;
+  border-radius: 999px;
+  color: var(--text-muted);
+  font-size: 1.2rem;
+  line-height: 1;
+}
+.reader-popup-close:hover {
+  background: var(--surface-muted);
+  color: var(--text);
+}
+.reader-popup-body {
+  padding: 0.35rem 1rem 0.9rem;
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
+.reader-popup .reader-popup-body p {
+  margin: 0 0 0.5em;
+}
+.reader-popup .reader-popup-body > :last-child,
+.reader-popup .reader-popup-body p:last-child {
+  margin-bottom: 0;
+}
+.reader-popup-body ol,
+.reader-popup-body ul {
+  margin: 0;
+  padding-left: 1.2em;
+}
+.reader-popup-more {
+  padding: 0.6rem 1rem 0.75rem;
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--text-muted);
+  text-decoration: none;
+}
+.reader-popup-more:hover {
+  color: var(--accent);
+}
+@media (prefers-reduced-motion: reduce) {
+  .reader-popup {
+    animation: none;
+  }
+}

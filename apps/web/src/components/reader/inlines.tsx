@@ -1,11 +1,24 @@
 import type { Inline } from "@ribbon/book-schema";
 import type { ReactNode } from "react";
+import { type GlossaryLookup, matchTerm } from "@/lib/glossary";
 
 export interface RenderContext {
   bookId: string;
   chapterId: string;
   /** Cross-link target anchor -> where it lives. */
   anchors: Map<string, { chapterId: string; blockId: string }>;
+  /** Glossary spellings. Italic text that names a term opens its definition. */
+  glossary?: GlossaryLookup;
+}
+
+/** The glossary term an italic run names, if it is plain text that matches one. */
+export function italicTerm(
+  nodes: readonly Inline[],
+  glossary?: GlossaryLookup,
+): string | undefined {
+  const [only] = nodes;
+  if (!glossary || nodes.length !== 1 || only?.t !== "text") return undefined;
+  return matchTerm(glossary, only.text);
 }
 
 /** Page link for a cross-reference target. Same-chapter links stay on the page. */
@@ -20,6 +33,10 @@ export function noteDomId(anchor: string): string {
   return `note-${anchor}`;
 }
 
+export function termDomId(term: string): string {
+  return `term-${term.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+}
+
 export function Inlines({ nodes, ctx }: { nodes: readonly Inline[]; ctx: RenderContext }) {
   return <>{nodes.map((node, i) => renderInline(node, i, ctx))}</>;
 }
@@ -30,12 +47,28 @@ function renderInline(node: Inline, key: number, ctx: RenderContext): ReactNode 
       return node.text;
     case "br":
       return <br key={key} />;
-    case "em":
-      return (
+    case "em": {
+      const term = italicTerm(node.children, ctx.glossary);
+      const em = (
         <em key={key}>
           <Inlines nodes={node.children} ctx={ctx} />
         </em>
       );
+      // A glossary term: ReaderPopups opens its definition in place.
+      return term ? (
+        <a
+          key={key}
+          href={`#${termDomId(term)}`}
+          className="reader-term"
+          data-term={term}
+          aria-haspopup="dialog"
+        >
+          {em}
+        </a>
+      ) : (
+        em
+      );
+    }
     case "strong":
       return (
         <strong key={key} className="font-semibold">

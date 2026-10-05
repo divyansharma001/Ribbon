@@ -380,7 +380,12 @@ export function ReadingTracker({ bookId, chapterId, saved, otherDevice }: Readin
       <p className="min-w-0 flex-1 text-sm leading-snug text-pretty">
         You were at <span className="font-semibold">{banner.sectionTitle}</span>
         {!sameChapter && <span className="text-muted"> ({banner.chapterTitle})</span>} on{" "}
-        {banner.deviceLabel}, {timeAgo(banner.readAt)}.
+        {banner.deviceLabel},{" "}
+        {/* Server and browser may be a minute apart; either answer is fine. */}
+        <time dateTime={banner.readAt} suppressHydrationWarning>
+          {timeAgo(banner.readAt)}
+        </time>
+        .
       </p>
       <div className="flex shrink-0 items-center gap-1">
         {sameChapter ? (
