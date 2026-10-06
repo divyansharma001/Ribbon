@@ -1,6 +1,6 @@
 import { expect, type Page, test } from "@playwright/test";
 import { E2E_URL } from "../playwright.config";
-import { useDevice } from "./support/device";
+import { useDevice, useMode } from "./support/device";
 
 test.use({ viewport: { width: 1280, height: 900 } });
 
@@ -42,7 +42,7 @@ test("highlight, add a note, bookmark, and find them again after a reload", asyn
   context,
 }) => {
   await useDevice(context, E2E_URL, "device-notes-0001", "Mac · Chrome");
-  await context.addCookies([{ name: "ribbon-mode", value: "scroll", url: E2E_URL }]);
+  await useMode(page, "scroll");
   const block = "ch_datamodels.3";
   await page.goto(`/books/ddia-2e/ch03#${block}`);
   await expect(page.locator(`[id="${block}"]`)).toBeInViewport();

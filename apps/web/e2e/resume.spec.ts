@@ -1,13 +1,13 @@
 import { expect, type Page, test } from "@playwright/test";
 import { createDb, eq, schema } from "@ribbon/db";
 import { E2E_DATABASE_URL, E2E_URL } from "../playwright.config";
-import { useDevice } from "./support/device";
+import { useDevice, useMode } from "./support/device";
 
 test.describe.configure({ mode: "serial" });
 
 // These tests cover the scrolling reader; book mode has its own tests in book.spec.ts.
-test.beforeEach(async ({ context }) => {
-  await context.addCookies([{ name: "ribbon-mode", value: "scroll", url: E2E_URL }]);
+test.beforeEach(async ({ page }) => {
+  await useMode(page, "scroll");
 });
 
 const CHAPTER = "/books/ddia-2e/ch06";

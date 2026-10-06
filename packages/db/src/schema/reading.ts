@@ -136,10 +136,12 @@ export const annotations = pgTable(
   ],
 );
 
+/** Reading settings that follow the account. Any field may be missing; the app fills in defaults. */
 export interface ReaderSettings {
-  theme: "light" | "dark" | "sepia" | "system";
-  fontSize: number;
-  lineWidth: "narrow" | "medium" | "wide";
+  theme?: "light" | "dark" | "sepia" | "system";
+  mode?: "book" | "scroll";
+  textSize?: "small" | "medium" | "large" | "larger";
+  measure?: "narrow" | "medium" | "wide";
 }
 
 export const userSettings = pgTable("user_settings", {

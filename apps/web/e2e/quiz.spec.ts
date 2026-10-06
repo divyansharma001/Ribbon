@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { E2E_URL } from "../playwright.config";
 import { turnPage } from "./support/book";
-import { useDevice } from "./support/device";
+import { useDevice, useMode } from "./support/device";
 
 test.use({ viewport: { width: 1512, height: 982 } });
 
@@ -10,6 +10,7 @@ test("a quick check stops the book until it is answered, then goes to review", a
   context,
 }) => {
   await useDevice(context, E2E_URL, "device-quiz-0007", "Mac · Chrome");
+  await useMode(page, "book");
   await page.goto("/books/ddia-2e/ch01#ch_tradeoffs.15");
   const pages = page.locator(".book-footer-pages");
   await expect(pages).toHaveText(/^Page \d+–\d+ of \d+$/);

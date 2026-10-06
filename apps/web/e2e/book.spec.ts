@@ -1,7 +1,7 @@
 import { expect, type Page, test } from "@playwright/test";
 import { E2E_URL } from "../playwright.config";
 import { turnPage } from "./support/book";
-import { useDevice } from "./support/device";
+import { useDevice, useMode } from "./support/device";
 
 test.describe.configure({ mode: "serial" });
 
@@ -22,6 +22,7 @@ test.describe("on a 14-inch Mac", () => {
 
   test("opens as a two-page book and turns pages with the keyboard", async ({ page, context }) => {
     await useDevice(context, E2E_URL, "device-book-0003", "Mac · Safari");
+    await useMode(page, "book");
     await page.goto(CHAPTER);
     await expect(page.locator('.book[data-spread="true"]')).toBeVisible();
     await expect(pages(page)).toHaveText(/^Page 1–2 of \d+$/);
@@ -38,6 +39,7 @@ test.describe("on a 14-inch Mac", () => {
 
   test("comes back to the same page after a reload", async ({ page, context }) => {
     await useDevice(context, E2E_URL, "device-book-0003", "Mac · Safari");
+    await useMode(page, "book");
     await page.goto(CHAPTER);
     for (let i = 0; i < 4; i++) await turnPage(page);
     // Compare the pages shown; the total can settle a moment later as figures load.
@@ -52,6 +54,7 @@ test.describe("on a 14-inch Mac", () => {
 
   test("links in the contents drawer open the right page", async ({ page, context }) => {
     await useDevice(context, E2E_URL, "device-book-0004", "Mac · Firefox");
+    await useMode(page, "book");
     await page.goto(CHAPTER);
     await page.getByRole("button", { name: "Contents" }).click();
     const link = page.locator(".contents-drawer nav a").nth(4);
@@ -63,6 +66,7 @@ test.describe("on a 14-inch Mac", () => {
 
   test("the Aa menu switches between book and scroll", async ({ page, context }) => {
     await useDevice(context, E2E_URL, "device-book-0004", "Mac · Firefox");
+    await useMode(page, "book");
     await page.goto(CHAPTER);
     await page.getByRole("button", { name: "Reading settings" }).click();
     await page.getByRole("button", { name: "Scroll", exact: true }).click();
@@ -80,6 +84,7 @@ test.describe("on a phone", () => {
 
   test("shows one page and turns with a tap on the edge", async ({ page, context }) => {
     await useDevice(context, E2E_URL, "device-book-0005", "iPhone · Safari");
+    await useMode(page, "book");
     await page.goto(CHAPTER);
     await expect(page.locator('.book[data-spread="false"]')).toBeVisible();
     await expect(pages(page)).toHaveText(/^Page 1 of \d+$/);

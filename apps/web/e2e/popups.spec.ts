@@ -1,10 +1,10 @@
 import { expect, test } from "@playwright/test";
 import { E2E_URL } from "../playwright.config";
-import { useDevice } from "./support/device";
+import { useDevice, useMode } from "./support/device";
 
 test("a citation opens in place and closes without moving the page", async ({ page, context }) => {
   await useDevice(context, E2E_URL, "device-popup-0001", "Mac · Chrome");
-  await context.addCookies([{ name: "ribbon-mode", value: "scroll", url: E2E_URL }]);
+  await useMode(page, "scroll");
   await page.goto("/books/ddia-2e/ch02");
 
   const marker = page.locator('[id="sec_introduction_twitter.2"] [data-noteref]').first();
@@ -25,7 +25,7 @@ test("a citation opens in place and closes without moving the page", async ({ pa
 
 test("a glossary term in italics shows its definition", async ({ page, context }) => {
   await useDevice(context, E2E_URL, "device-popup-0002", "Mac · Chrome");
-  await context.addCookies([{ name: "ribbon-mode", value: "scroll", url: E2E_URL }]);
+  await useMode(page, "scroll");
   await page.goto("/books/ddia-2e/ch02");
 
   const term = page.locator('[data-term="backpressure"]').first();
@@ -44,6 +44,7 @@ test("opening a book page from a link never scrolls the pages out of place", asy
   context,
 }) => {
   await useDevice(context, E2E_URL, "device-popup-0003", "iPhone · Safari");
+  await useMode(page, "book");
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/books/ddia-2e/ch02#sec_introduction_percentiles.6");
   await expect(page.locator(".book-footer-pages")).toHaveText(/^Page \d+ of \d+$/);

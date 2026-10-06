@@ -172,6 +172,8 @@ body {
   color: var(--text);
   font-family: var(--font-sans);
   box-shadow: 0 12px 32px rgb(0 0 0 / 0.14);
+  max-height: calc(100dvh - 4.5rem);
+  overflow-y: auto;
 }
 .theme-menu .menu-heading {
   padding: 0.35rem 0.75rem 0.4rem;
@@ -183,7 +185,8 @@ body {
 }
 .theme-menu .menu-segment {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
   gap: 0.25rem;
   margin: 0 0.4rem 0.6rem;
   padding: 0.2rem;

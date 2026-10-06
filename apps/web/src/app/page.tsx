@@ -10,6 +10,7 @@ import {
   WeekStrip,
 } from "@/components/home/streak-parts";
 import { RibbonMark } from "@/components/ribbon-mark";
+import { SettingsLink } from "@/components/settings-link";
 import { SoundButton } from "@/components/sound/sound-button";
 import { ThemePicker } from "@/components/theme-picker";
 import { getBookProgress, getContinueReading } from "@/lib/home";
@@ -73,6 +74,7 @@ export default async function Home() {
         <div className="flex items-center gap-1">
           <SoundButton />
           <ThemePicker />
+          <SettingsLink />
         </div>
       </header>
 

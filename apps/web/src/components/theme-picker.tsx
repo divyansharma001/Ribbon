@@ -1,58 +1,61 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { setSoundEnabled, soundEnabled } from "@/components/book/feedback";
-import { isReadingMode, READING_MODE_COOKIE, type ReadingMode } from "@/lib/reading-mode";
-import { isTheme, THEME_COOKIE, THEME_LABELS, THEMES, type Theme } from "@/lib/themes";
+import {
+  DEFAULT_PREFS,
+  MEASURE_LABELS,
+  MEASURES,
+  type ReaderPrefs,
+  savePrefs,
+  TEXT_SIZE_LABELS,
+  TEXT_SIZES,
+} from "@/lib/prefs";
+import { isReadingMode } from "@/lib/reading-mode";
+import { isTheme, THEME_LABELS, THEMES, type Theme } from "@/lib/themes";
 
-const SWATCHES: Record<Theme, string> = {
+export const SWATCHES: Record<Theme, string> = {
   light: "#fbfaf7",
   sepia: "#f4ecd8",
   dark: "#141312",
   system: "linear-gradient(135deg, #fbfaf7 50%, #141312 50%)",
 };
 
-function readCookie(name: string): string | undefined {
-  return document.cookie
-    .split("; ")
-    .find((c) => c.startsWith(`${name}=`))
-    ?.split("=")[1];
+/** The settings the page was drawn with (the server puts them on <html>). */
+export function currentPrefs(): ReaderPrefs {
+  const d = document.documentElement.dataset;
+  return {
+    theme: isTheme(d.theme) ? d.theme : DEFAULT_PREFS.theme,
+    mode: isReadingMode(d.readingMode) ? d.readingMode : DEFAULT_PREFS.mode,
+    textSize: TEXT_SIZES.find((t) => t === d.textSize) ?? DEFAULT_PREFS.textSize,
+    measure: MEASURES.find((m) => m === d.measure) ?? DEFAULT_PREFS.measure,
+  };
 }
 
-function writeCookie(name: string, value: string) {
-  // biome-ignore lint/suspicious/noDocumentCookie: simple first-party preference cookies
-  document.cookie = `${name}=${value}; path=/; max-age=31536000; samesite=lax`;
-}
-
-/** "Aa" menu: book or scroll, theme, and page sound. Saved in cookies and local storage. */
+/** "Aa" menu: book or scroll, theme, text size, line width, and page sound. */
 export function ThemePicker() {
   const router = useRouter();
   const menu = useRef<HTMLDivElement>(null);
-  const [theme, setTheme] = useState<Theme | null>(null);
-  const [mode, setMode] = useState<ReadingMode>("book");
+  const [prefs, setPrefs] = useState<ReaderPrefs | null>(null);
   const [sound, setSound] = useState(true);
 
   useEffect(() => {
-    const current = document.documentElement.dataset.theme;
-    setTheme(isTheme(current) ? current : null);
-    const savedMode = readCookie(READING_MODE_COOKIE);
-    setMode(isReadingMode(savedMode) ? savedMode : "book");
+    setPrefs(currentPrefs());
     setSound(soundEnabled());
   }, []);
 
-  const chooseTheme = (next: Theme) => {
-    document.documentElement.dataset.theme = next;
-    writeCookie(THEME_COOKIE, next);
-    setTheme(next);
-  };
-
-  const chooseMode = (next: ReadingMode) => {
-    if (next === mode) return;
-    writeCookie(READING_MODE_COOKIE, next);
-    setMode(next);
-    menu.current?.hidePopover();
-    router.refresh();
+  const change = (p: Partial<ReaderPrefs>) => {
+    setPrefs((old) => (old ? { ...old, ...p } : old));
+    const saving = savePrefs(p);
+    // Book and scroll are drawn differently on the server: show the other one once saved.
+    if (p.mode) {
+      document.documentElement.dataset.readingMode = p.mode;
+      menu.current?.hidePopover();
+      void saving.then(() => router.refresh());
+    }
+    saving.catch(() => {});
   };
 
   const toggleSound = () => {
@@ -77,14 +80,50 @@ export function ThemePicker() {
             <button
               key={m}
               type="button"
-              aria-pressed={mode === m}
-              onClick={() => chooseMode(m)}
-              className={mode === m ? "is-on" : ""}
+              aria-pressed={prefs?.mode === m}
+              onClick={() => prefs?.mode !== m && change({ mode: m })}
+              className={prefs?.mode === m ? "is-on" : ""}
             >
               {m === "book" ? "Book" : "Scroll"}
             </button>
           ))}
         </div>
+
+        <p className="menu-heading">Text size</p>
+        <div className="menu-segment text-size-segment">
+          {TEXT_SIZES.map((t, i) => (
+            <button
+              key={t}
+              type="button"
+              aria-pressed={prefs?.textSize === t}
+              aria-label={TEXT_SIZE_LABELS[t]}
+              title={TEXT_SIZE_LABELS[t]}
+              onClick={() => change({ textSize: t })}
+              className={prefs?.textSize === t ? "is-on" : ""}
+            >
+              <span style={{ fontSize: `${12 + i * 2.5}px` }}>A</span>
+            </button>
+          ))}
+        </div>
+
+        {prefs?.mode === "scroll" && (
+          <>
+            <p className="menu-heading">Line width</p>
+            <div className="menu-segment">
+              {MEASURES.map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  aria-pressed={prefs.measure === m}
+                  onClick={() => change({ measure: m })}
+                  className={prefs.measure === m ? "is-on" : ""}
+                >
+                  {MEASURE_LABELS[m]}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
 
         <p className="menu-heading">Theme</p>
         <div>
@@ -92,8 +131,8 @@ export function ThemePicker() {
             <button
               key={t}
               type="button"
-              aria-pressed={theme === t}
-              onClick={() => chooseTheme(t)}
+              aria-pressed={prefs?.theme === t}
+              onClick={() => change({ theme: t })}
               className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium hover:bg-surface-muted"
             >
               <span
@@ -101,7 +140,7 @@ export function ThemePicker() {
                 style={{ background: SWATCHES[t] }}
               />
               <span className="flex-1">{THEME_LABELS[t]}</span>
-              {theme === t && (
+              {prefs?.theme === t && (
                 <span className="text-accent" aria-hidden="true">
                   ✓
                 </span>
@@ -110,21 +149,26 @@ export function ThemePicker() {
           ))}
         </div>
 
-        {mode === "book" && (
-          <>
-            <div className="menu-divider" />
-            <button
-              type="button"
-              role="switch"
-              aria-checked={sound}
-              onClick={toggleSound}
-              className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium hover:bg-surface-muted"
-            >
-              <span className="flex-1">Page-turn sound</span>
-              <span className="menu-switch" data-on={sound ? "true" : "false"} aria-hidden="true" />
-            </button>
-          </>
+        <div className="menu-divider" />
+        {prefs?.mode === "book" && (
+          <button
+            type="button"
+            role="switch"
+            aria-checked={sound}
+            onClick={toggleSound}
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium hover:bg-surface-muted"
+          >
+            <span className="flex-1">Page-turn sound</span>
+            <span className="menu-switch" data-on={sound ? "true" : "false"} aria-hidden="true" />
+          </button>
         )}
+        <Link
+          href="/settings"
+          className="flex w-full items-center rounded-lg px-3 py-2 text-sm font-medium text-accent hover:bg-surface-muted"
+          onClick={() => menu.current?.hidePopover()}
+        >
+          All settings
+        </Link>
       </div>
     </>
   );

@@ -29,10 +29,11 @@ import {
 } from "@/lib/books";
 import { glossaryLookup, termsUsed } from "@/lib/glossary";
 import { getChapterAnswers } from "@/lib/learning/data";
+import { TEXT_SCALE } from "@/lib/prefs";
+import { getReaderPrefs } from "@/lib/prefs-server";
 import { getResumeState } from "@/lib/reading/positions";
 import { requireUser } from "@/lib/session";
 import { getStreak } from "@/lib/streaks/data";
-import { getReadingModeCookie } from "@/lib/theme";
 
 export async function generateMetadata({
   params,
@@ -45,14 +46,14 @@ export async function generateMetadata({
 export default async function ChapterPage({ params }: PageProps<"/books/[bookId]/[chapterId]">) {
   const user = await requireUser();
   const { bookId, chapterId } = await params;
-  const [book, chapter, blocks, chapters, resume, mode, streak, answers, glossary, marks] =
+  const [book, chapter, blocks, chapters, resume, prefs, streak, answers, glossary, marks] =
     await Promise.all([
       getBook(bookId),
       getChapter(bookId, chapterId),
       getChapterBlocks(bookId, chapterId),
       getChapterList(bookId),
       getResumeState(user.id, bookId),
-      getReadingModeCookie(),
+      getReaderPrefs(),
       getStreak(user.id),
       getChapterAnswers(user.id, bookId, chapterId),
       getGlossary(bookId),
@@ -185,9 +186,10 @@ export default async function ChapterPage({ params }: PageProps<"/books/[bookId]
         />
       }
     >
-      {mode === "book" ? (
+      {prefs.mode === "book" ? (
         <BookView
           chapterLabel={chapterLabel}
+          textScale={TEXT_SCALE[prefs.textSize]}
           prevHref={prev ? `/books/${bookId}/${prev.id}#end` : null}
           nextHref={next ? `/books/${bookId}/${next.id}` : null}
         >

@@ -9,11 +9,28 @@
   max-width: var(--reader-measure);
   margin-inline: auto;
   font-family: var(--font-serif);
-  font-size: var(--reader-size);
+  font-size: calc(var(--reader-size) * var(--text-scale, 1));
   line-height: 1.7;
   font-optical-sizing: auto;
   hyphens: auto;
   overflow-wrap: break-word;
+}
+
+/* Text size and line width settings, set on <html>. */
+html[data-text-size="small"] {
+  --text-scale: 0.9;
+}
+html[data-text-size="large"] {
+  --text-scale: 1.1;
+}
+html[data-text-size="larger"] {
+  --text-scale: 1.22;
+}
+html[data-measure="narrow"] .reader-body {
+  --reader-measure: 38rem;
+}
+html[data-measure="wide"] .reader-body {
+  --reader-measure: 54rem;
 }
 
 @media (max-width: 640px) {

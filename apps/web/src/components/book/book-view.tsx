@@ -6,6 +6,7 @@ import { type ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useSta
 import { paintCopy } from "@/components/annotations/paint-copy";
 import { ANNOTATIONS_CHANGED, highlightAt } from "@/components/annotations/store";
 import { useReducedMotion } from "@/diagrams/use-steps";
+import { PREFS_CHANGED, type ReaderPrefs, TEXT_SCALE } from "@/lib/prefs";
 import { SURFACE_MOVED, setReadingSurface } from "../reader/surface";
 import { hapticTap, playPageTurn } from "./feedback";
 import {
@@ -27,6 +28,8 @@ interface BookViewProps {
   chapterLabel: string;
   prevHref: string | null;
   nextHref: string | null;
+  /** The reader's text size setting (1 = medium). */
+  textScale?: number;
   children: ReactNode;
 }
 
@@ -43,7 +46,13 @@ interface Turn {
  * phones, with a 3D page turn. The live text is one CSS-column flow; during a
  * turn, static copies of it fill the turning page and the page underneath.
  */
-export function BookView({ chapterLabel, prevHref, nextHref, children }: BookViewProps) {
+export function BookView({
+  chapterLabel,
+  prevHref,
+  nextHref,
+  textScale = 1,
+  children,
+}: BookViewProps) {
   const router = useRouter();
   const reduced = useReducedMotion();
   const deskRef = useRef<HTMLDivElement>(null);
@@ -76,10 +85,22 @@ export function BookView({ chapterLabel, prevHref, nextHref, children }: BookVie
   // ---------------------------------------------------------------------------
   // Size the book to the window.
   // ---------------------------------------------------------------------------
+  // The text size setting; a change in the Aa menu applies at once.
+  const [scale, setScale] = useState(textScale);
+  useEffect(() => setScale(textScale), [textScale]);
+  useEffect(() => {
+    const onChange = (e: Event) => {
+      const size = (e as CustomEvent<Partial<ReaderPrefs>>).detail.textSize;
+      if (size) setScale(TEXT_SCALE[size]);
+    };
+    window.addEventListener(PREFS_CHANGED, onChange);
+    return () => window.removeEventListener(PREFS_CHANGED, onChange);
+  }, []);
+
   useLayoutEffect(() => {
     document.documentElement.classList.add("book-mode");
     let timer = 0;
-    const update = () => setGeo(bookGeometry(window.innerWidth, window.innerHeight));
+    const update = () => setGeo(bookGeometry(window.innerWidth, window.innerHeight, scale));
     const onResize = () => {
       window.clearTimeout(timer);
       timer = window.setTimeout(update, 120);
@@ -91,7 +112,7 @@ export function BookView({ chapterLabel, prevHref, nextHref, children }: BookVie
       window.removeEventListener("resize", onResize);
       window.clearTimeout(timer);
     };
-  }, []);
+  }, [scale]);
 
   const blocks = useCallback(
     () => Array.from(flowRef.current?.querySelectorAll<HTMLElement>("[data-block-id]") ?? []),

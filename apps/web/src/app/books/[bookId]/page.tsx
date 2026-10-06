@@ -2,6 +2,7 @@ import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { RibbonMark } from "@/components/ribbon-mark";
+import { SettingsLink } from "@/components/settings-link";
 import { SoundButton } from "@/components/sound/sound-button";
 import { ThemePicker } from "@/components/theme-picker";
 import { getBookNotes, type NoteEntry } from "@/lib/annotations/data";
@@ -182,6 +183,7 @@ export default async function BookPage({ params }: PageProps<"/books/[bookId]">)
         <div className="flex items-center gap-1">
           <SoundButton />
           <ThemePicker />
+          <SettingsLink />
         </div>
       </header>
 

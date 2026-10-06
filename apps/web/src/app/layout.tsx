@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Literata } from "next/font/google";
 import { LiveDock } from "@/components/sound/live-dock";
-import { getThemeCookie } from "@/lib/theme";
+import { getReaderPrefs } from "@/lib/prefs-server";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
@@ -25,11 +25,14 @@ export const viewport: Viewport = {
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
-  const theme = await getThemeCookie();
+  const prefs = await getReaderPrefs();
   return (
     <html
       lang="en"
-      data-theme={theme}
+      data-theme={prefs.theme}
+      data-text-size={prefs.textSize}
+      data-measure={prefs.measure}
+      data-reading-mode={prefs.mode}
       className={`${inter.variable} ${literata.variable}`}
       suppressHydrationWarning
     >

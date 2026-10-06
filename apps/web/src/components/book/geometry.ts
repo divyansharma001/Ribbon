@@ -24,7 +24,8 @@ const TOP_BAR = 56;
 const FOOTER = 48;
 
 /** Fits the book to the window: an open two-page book on wide screens, one page on narrow ones. */
-export function bookGeometry(viewportW: number, viewportH: number): BookGeometry {
+/** `textScale` is the reader's text size setting (1 = medium). */
+export function bookGeometry(viewportW: number, viewportH: number, textScale = 1): BookGeometry {
   const phone = viewportW < 640;
   const sideRoom = phone ? 0 : 128; // room for the turn arrows beside the book
   const vertRoom = TOP_BAR + FOOTER + (phone ? 0 : 24);
@@ -42,7 +43,8 @@ export function bookGeometry(viewportW: number, viewportH: number): BookGeometry
   const padX = phone ? 22 : Math.round(Math.min(72, Math.max(40, pageW * 0.085)));
   const padTop = phone ? 24 : 52;
   const padBottom = phone ? 24 : 48;
-  const fontSize = phone ? 17.5 : pageW >= 640 ? 19 : 18;
+  const base = phone ? 17.5 : pageW >= 640 ? 19 : 18;
+  const fontSize = Math.round(base * textScale * 2) / 2;
   return { spread, pageW, pageH, padX, padTop, padBottom, fontSize };
 }
 

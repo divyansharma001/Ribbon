@@ -76,7 +76,9 @@ html.book-mode body {
 
 /* The text, laid out as one column per page, one page width apart. */
 .book-flow.reader-body {
+  /* --book-font already includes the text size setting. */
   --reader-size: var(--book-font);
+  --text-scale: 1;
   position: absolute;
   top: var(--pad-top);
   left: var(--pad-x);

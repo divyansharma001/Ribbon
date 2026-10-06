@@ -1,13 +1,13 @@
 import { expect, test } from "@playwright/test";
 import { E2E_URL } from "../playwright.config";
-import { useDevice } from "./support/device";
+import { useDevice, useMode } from "./support/device";
 
 test("the book overview lists every chapter and opens a section in the reader", async ({
   page,
   context,
 }) => {
   await useDevice(context, E2E_URL, "device-overview-0001", "Mac · Chrome");
-  await context.addCookies([{ name: "ribbon-mode", value: "scroll", url: E2E_URL }]);
+  await useMode(page, "scroll");
   await page.goto("/books/ddia-2e");
 
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
