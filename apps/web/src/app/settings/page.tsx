@@ -81,6 +81,24 @@ export default async function SettingsPage() {
           </div>
         </section>
 
+        <section className="home-card set-section" aria-labelledby="sharing-title">
+          <h2 id="sharing-title" className="home-section-title">
+            Sharing
+          </h2>
+          <p className="home-muted">
+            A public profile with your level, streak, and badges, for GitHub, LinkedIn, and anywhere
+            else. Off unless you turn it on.
+          </p>
+          <div className="set-actions">
+            <Link href="/share" className="ov-secondary">
+              Public profile and badges
+            </Link>
+            <Link href="/leaderboard" className="ov-secondary">
+              Leaderboard
+            </Link>
+          </div>
+        </section>
+
         <section className="home-card set-section" aria-labelledby="account-title">
           <h2 id="account-title" className="home-section-title">
             Account

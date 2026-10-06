@@ -213,3 +213,38 @@ export const reviewCards = pgTable(
     check("review_cards_box", sql`${t.box} between 0 and 5`),
   ],
 );
+
+/** One row per spaced review, so reviews can be placed on a day (weekly XP, records). */
+export const reviewEvents = pgTable(
+  "review_events",
+  {
+    id: uuid().primaryKey(),
+    userId: userId(),
+    bookId: bookId(),
+    questionId: text().notNull(),
+    correct: boolean().notNull(),
+    reviewedAt: createdAt(),
+  },
+  (t) => [index("review_events_user_time_idx").on(t.userId, t.reviewedAt)],
+);
+
+/**
+ * An opt-in public profile: level, streak, and badges at /u/<handle>, for
+ * sharing on GitHub, LinkedIn, and elsewhere. Never shows book text or notes.
+ */
+export const publicProfiles = pgTable(
+  "public_profiles",
+  {
+    userId: text()
+      .primaryKey()
+      .references(() => user.id, { onDelete: "cascade" }),
+    /** Lowercase letters, digits, and dashes. */
+    handle: text().notNull().unique(),
+    enabled: boolean().notNull().default(false),
+    /** Show the reader's name, or only the handle. */
+    showName: boolean().notNull().default(true),
+    createdAt: createdAt(),
+    updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [check("public_profiles_handle", sql`${t.handle} ~ '^[a-z0-9][a-z0-9-]{1,28}[a-z0-9]$'`)],
+);

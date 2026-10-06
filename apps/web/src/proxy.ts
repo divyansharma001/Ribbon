@@ -18,8 +18,9 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Everything except the login page, auth API, Next.js internals, and static files.
+  // Everything except the login page, auth API, public profiles (opt-in, totals
+  // only; each page checks the profile is turned on), Next.js internals, and static files.
   matcher: [
-    "/((?!login|api/auth|_next/static|_next/image|favicon.ico|icon|apple-icon|robots.txt).*)",
+    "/((?!login|api/auth|u/|_next/static|_next/image|favicon.ico|icon|apple-icon|robots.txt).*)",
   ],
 };

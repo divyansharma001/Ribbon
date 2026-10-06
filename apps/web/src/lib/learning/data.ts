@@ -71,16 +71,27 @@ export async function recordReview(
   const [card] = await db.select().from(schema.reviewCards).where(where);
   if (!card) return;
   const next = scheduleReview(card.box, correct, now);
-  await db
-    .update(schema.reviewCards)
-    .set({
-      box: next.box,
-      dueAt: next.dueAt,
-      reviews: card.reviews + 1,
-      lapses: card.lapses + (correct ? 0 : 1),
-      lastReviewedAt: now,
-    })
-    .where(where);
+  await db.transaction(async (tx) => {
+    await tx
+      .update(schema.reviewCards)
+      .set({
+        box: next.box,
+        dueAt: next.dueAt,
+        reviews: card.reviews + 1,
+        lapses: card.lapses + (correct ? 0 : 1),
+        lastReviewedAt: now,
+      })
+      .where(where);
+    // Kept per review so reviews count towards the right day and week.
+    await tx.insert(schema.reviewEvents).values({
+      id: crypto.randomUUID(),
+      userId,
+      bookId,
+      questionId,
+      correct,
+      reviewedAt: now,
+    });
+  });
 }
 
 /** Cards due now, oldest first. */

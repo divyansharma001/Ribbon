@@ -34,6 +34,15 @@ async function dragSelect(page: Page, blockId: string, from: string, to: string)
   await page.mouse.up();
 }
 
+/** Does something that saves in the background, and waits until the save is done. */
+async function andSaved(page: Page, act: () => Promise<unknown>) {
+  const saved = page.waitForResponse(
+    (r) => r.request().method() === "POST" && r.request().headers()["next-action"] !== undefined,
+  );
+  await act();
+  await saved;
+}
+
 const painted = (page: Page, color: string) =>
   page.evaluate((c) => CSS.highlights.get(`ribbon-${c}`)?.size ?? 0, color);
 
@@ -49,7 +58,7 @@ test("highlight, add a note, bookmark, and find them again after a reload", asyn
 
   // Select, pick green.
   await dragSelect(page, block, "layering", "another");
-  await page.getByRole("button", { name: "Highlight green" }).click();
+  await andSaved(page, () => page.getByRole("button", { name: "Highlight green" }).click());
   await expect.poll(() => painted(page, "green")).toBe(1);
 
   // Still there after a reload, and opens when tapped.
@@ -65,11 +74,11 @@ test("highlight, add a note, bookmark, and find them again after a reload", asyn
   const editor = page.getByRole("dialog", { name: "Highlight" });
   await editor.getByRole("button", { name: "Add a note" }).click();
   await editor.getByRole("textbox", { name: "Note" }).fill("Compare with the graph model later.");
-  await editor.getByRole("button", { name: "Done" }).click();
+  await andSaved(page, () => editor.getByRole("button", { name: "Done" }).click());
   await expect(editor).toBeHidden();
 
   // Bookmark the spot.
-  await page.getByRole("button", { name: "Bookmark this spot" }).click();
+  await andSaved(page, () => page.getByRole("button", { name: "Bookmark this spot" }).click());
   await expect(page.getByRole("button", { name: "Remove bookmark" })).toBeVisible();
 
   // The notes tab lists both, after a reload.
@@ -90,8 +99,8 @@ test("highlight, add a note, bookmark, and find them again after a reload", asyn
   await page.goto(`/books/ddia-2e/ch03#${block}`);
   await page.getByRole("button", { name: "Contents" }).click();
   await page.getByRole("tab", { name: /Notes/ }).click();
-  await page.getByRole("button", { name: "Delete highlight" }).click();
-  await page.getByRole("button", { name: "Remove bookmark" }).last().click();
+  await andSaved(page, () => page.getByRole("button", { name: "Delete highlight" }).click());
+  await andSaved(page, () => page.getByRole("button", { name: "Remove bookmark" }).last().click());
   await page.keyboard.press("Escape");
   await page.reload();
   await expect.poll(() => painted(page, "green")).toBe(0);

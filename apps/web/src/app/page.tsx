@@ -9,6 +9,7 @@ import {
   StreakCalendar,
   WeekStrip,
 } from "@/components/home/streak-parts";
+import { RaceCard } from "@/components/records/race";
 import { RibbonMark } from "@/components/ribbon-mark";
 import { SettingsLink } from "@/components/settings-link";
 import { SoundButton } from "@/components/sound/sound-button";
@@ -17,6 +18,7 @@ import { getBookProgress, getContinueReading } from "@/lib/home";
 import { getDueCount, getLearningStats, getNextDue } from "@/lib/learning/data";
 import { badgesFor, levelFor, xpFrom } from "@/lib/learning/logic";
 import { timeAgo } from "@/lib/reading/logic";
+import { getRecords } from "@/lib/records/data";
 import { requireUser } from "@/lib/session";
 import { getStreak } from "@/lib/streaks/data";
 import { lastDays } from "@/lib/streaks/logic";
@@ -43,13 +45,14 @@ function greeting(timeZone: string): string {
 
 export default async function Home() {
   const user = await requireUser();
-  const [streak, last, books, stats, due, nextDue] = await Promise.all([
+  const [streak, last, books, stats, due, nextDue, records] = await Promise.all([
     getStreak(user.id),
     getContinueReading(user.id),
     getBookProgress(user.id),
     getLearningStats(user.id),
     getDueCount(user.id),
     getNextDue(user.id),
+    getRecords(user.id),
   ]);
   const level = levelFor(xpFrom(stats));
   const { settings } = streak;
@@ -157,6 +160,8 @@ export default async function Home() {
           <LevelCard level={level} />
           <ReviewCard due={due} next={nextDue} />
         </div>
+
+        <RaceCard race={records.race} link />
 
         <section className="home-card home-calendar" aria-labelledby="calendar-title">
           <div className="home-section-head">
