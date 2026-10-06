@@ -43,6 +43,13 @@
       "when": 1791262635930,
       "tag": "0005_invites_and_perks",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791281330393,
+      "tag": "0006_focus_runs",
+      "breakpoints": true
     }
   ]
 }

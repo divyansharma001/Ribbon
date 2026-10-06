@@ -18,7 +18,10 @@ test("the book overview lists every chapter and opens a section in the reader", 
 
   // Chapter 2 opens to its sections, each with its quick-check count.
   const ch2 = chapters.filter({ hasText: "Defining Nonfunctional Requirements" });
-  await ch2.locator("summary").click();
+  // It may already be open when chapter 2 is where the reader is.
+  if ((await ch2.getAttribute("open")) === null) {
+    await ch2.locator("summary").click();
+  }
   const section = ch2.locator(".ov-section").filter({ hasText: "Latency and Response Time" });
   await expect(section).toContainText("/3 answered");
   await expect(section.locator(".ov-chip")).toBeVisible();

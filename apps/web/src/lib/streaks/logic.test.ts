@@ -58,6 +58,24 @@ describe("computeStreak", () => {
     expect(s.freezes).toBe(4);
   });
 
+  it("in strict mode, judges each day by its longest run, not its total", () => {
+    // Day 1: 15 minutes in total but no run of 10. Day 2: one 12-minute run.
+    const mins = history(15, 12);
+    const runs = new Map([
+      [addDays(TODAY, -2), 6],
+      [addDays(TODAY, -1), 12],
+    ]);
+    const s = computeStreak(mins, rules, TODAY, [], runs);
+    expect(s.days.map((d) => d.status)).toEqual(["missed", "met", "pending"]);
+    expect(s.days[0]?.minutes).toBe(15); // the calendar still shows all reading
+    expect(s.current).toBe(1);
+
+    const today = computeStreak(new Map([[TODAY, 14]]), rules, TODAY, [], new Map([[TODAY, 8]]));
+    expect(today.todayMinutes).toBe(14);
+    expect(today.todayProgress).toBe(8);
+    expect(today.todayMet).toBe(false);
+  });
+
   it("never holds more than 2 freezes", () => {
     const s = computeStreak(history(...Array(28).fill(10)), rules, TODAY);
     expect(s.freezes).toBe(2);

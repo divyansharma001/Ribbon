@@ -181,7 +181,8 @@ export default async function ChapterPage({ params }: PageProps<"/books/[bookId]
       outline={chapter.outline}
       today={
         <TodayRing
-          baseMinutes={streak.todayMinutes}
+          baseMinutes={streak.todayProgress}
+          strict={streak.settings.strictFocus}
           goal={streak.goalMinutes}
           streak={streak.current}
           today={streak.today}
@@ -216,6 +217,7 @@ export default async function ChapterPage({ params }: PageProps<"/books/[bookId]
         chapterId={chapterId}
         saved={resume.thisDevice}
         otherDevice={resume.otherDevice}
+        strict={streak.settings.strictFocus}
       />
     </ReaderShell>
   );

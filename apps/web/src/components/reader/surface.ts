@@ -27,5 +27,8 @@ export function getReadingSurface(): ReadingSurface | null {
   return active;
 }
 
+/** Fired on window about once a second with the current focus run's seconds. */
+export const FOCUS_RUN_EVENT = "ribbon:focus-run";
+
 /** Fired on window about once a second with this page's active reading seconds. */
 export const ACTIVE_SECONDS_EVENT = "ribbon:active-seconds";

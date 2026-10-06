@@ -58,7 +58,11 @@ export default async function SettingsPage() {
           <h2 id="goal-title" className="home-section-title">
             Streak
           </h2>
-          <GoalSettings goalMinutes={goal.goalMinutes} weekendsOff={goal.weekendsOff} />
+          <GoalSettings
+            goalMinutes={goal.goalMinutes}
+            weekendsOff={goal.weekendsOff}
+            strictFocus={goal.strictFocus}
+          />
           <p className="home-muted">
             Every 7 days in a row earns a freeze (up to 2), which saves your streak on a missed day.
             Friends can gift you more. Once a month, reading double your goal the day after a miss

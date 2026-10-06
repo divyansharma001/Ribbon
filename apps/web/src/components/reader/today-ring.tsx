@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { GoalRing } from "@/components/home/streak-parts";
-import { ACTIVE_SECONDS_EVENT } from "./surface";
+import { ACTIVE_SECONDS_EVENT, FOCUS_RUN_EVENT } from "./surface";
 
 const CELEBRATED_KEY = "ribbon-goal-celebrated";
 
@@ -18,21 +18,27 @@ export function TodayRing({
   goal,
   streak,
   today,
+  strict = false,
 }: {
+  /** Today's minutes so far, or in strict mode today's longest run. */
   baseMinutes: number;
   goal: number;
   streak: number;
   today: string;
+  /** Strict focus: the ring shows the current unbroken run. */
+  strict?: boolean;
 }) {
   const [live, setLive] = useState(0);
   const [toast, setToast] = useState(false);
-  const minutes = baseMinutes + live / 60;
+  // Normal: today's minutes plus this page's. Strict: the longer of today's best run and the current one.
+  const minutes = strict ? Math.max(baseMinutes, live / 60) : baseMinutes + live / 60;
 
   useEffect(() => {
     const on = (e: Event) => setLive((e as CustomEvent<number>).detail);
-    window.addEventListener(ACTIVE_SECONDS_EVENT, on);
-    return () => window.removeEventListener(ACTIVE_SECONDS_EVENT, on);
-  }, []);
+    const event = strict ? FOCUS_RUN_EVENT : ACTIVE_SECONDS_EVENT;
+    window.addEventListener(event, on);
+    return () => window.removeEventListener(event, on);
+  }, [strict]);
 
   const reached = baseMinutes < goal && minutes >= goal;
   useEffect(() => {
@@ -55,8 +61,20 @@ export function TodayRing({
       <Link
         href="/"
         className="today-ring"
-        aria-label={done ? "Today's goal is done" : `${left} minutes left today`}
-        title={done ? "Today's goal is done" : `${left} min left today`}
+        aria-label={
+          done
+            ? "Today's goal is done"
+            : strict
+              ? `Focus run: ${Math.floor(minutes)} of ${goal} minutes`
+              : `${left} minutes left today`
+        }
+        title={
+          done
+            ? "Today's goal is done"
+            : strict
+              ? `Focus run ${Math.floor(minutes)} of ${goal} min`
+              : `${left} min left today`
+        }
       >
         <GoalRing minutes={minutes} goal={goal} size={26} stroke={3} label={false} />
       </Link>

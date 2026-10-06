@@ -164,6 +164,8 @@ export const streakSettings = pgTable(
     goalMinutes: integer().notNull().default(10),
     /** Saturdays and Sundays never break the streak. */
     weekendsOff: boolean().notNull().default(false),
+    /** Strict focus: the daily goal must be read in one run, without leaving Ribbon. */
+    strictFocus: boolean().notNull().default(false),
     /** IANA time zone (e.g. "Asia/Kolkata"); days start at midnight here. */
     timeZone: text().notNull().default("UTC"),
     /** "HH:MM" local time for the reminder email, or null for none. */
@@ -304,4 +306,25 @@ export const perkGrants = pgTable(
     createdAt: createdAt(),
   },
   (t) => [uniqueIndex("perk_grants_once_idx").on(t.userId, t.reason, t.friendId)],
+);
+
+/**
+ * Reading without leaving Ribbon (short glances away are fine). In strict
+ * focus mode, the daily goal must be reached within one run.
+ */
+export const focusRuns = pgTable(
+  "focus_runs",
+  {
+    id: uuid().primaryKey(),
+    userId: userId(),
+    deviceId: text().notNull(),
+    startedAt: timestamp({ withTimezone: true }).notNull(),
+    /** Active reading seconds in the run so far. */
+    seconds: integer().notNull().default(0),
+    updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("focus_runs_user_started_idx").on(t.userId, t.startedAt),
+    check("focus_runs_seconds", sql`${t.seconds} >= 0`),
+  ],
 );

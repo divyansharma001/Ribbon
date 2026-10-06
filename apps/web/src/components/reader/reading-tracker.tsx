@@ -2,7 +2,17 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { type Device, getDevice } from "@/lib/reading/device";
+import {
+  awayLabel,
+  type FocusRun,
+  GRACE_MS,
+  newRun,
+  RUN_KEY,
+  restoreRun,
+  resume,
+} from "@/lib/reading/focus";
 import {
   type BlockRef,
   type DevicePosition,
@@ -15,7 +25,7 @@ import {
   scrollTargetFor,
   timeAgo,
 } from "@/lib/reading/logic";
-import { ACTIVE_SECONDS_EVENT, getReadingSurface, SURFACE_MOVED } from "./surface";
+import { ACTIVE_SECONDS_EVENT, FOCUS_RUN_EVENT, getReadingSurface, SURFACE_MOVED } from "./surface";
 
 export interface OtherDeviceSpot extends DevicePosition {
   chapterTitle: string;
@@ -29,6 +39,8 @@ interface ReadingTrackerProps {
   saved: ReadingSpot | null;
   /** A newer spot from another device, if any. */
   otherDevice: OtherDeviceSpot | null;
+  /** Strict focus: leaving restarts the run that counts towards the daily goal. */
+  strict?: boolean;
 }
 
 const SEND_EVERY_MS = 5000;
@@ -83,8 +95,23 @@ function sendProgress(payload: unknown, closing: boolean): Promise<boolean> {
  * brings you back to your spot when you return, and offers a newer spot
  * from another device.
  */
-export function ReadingTracker({ bookId, chapterId, saved, otherDevice }: ReadingTrackerProps) {
+export function ReadingTracker({
+  bookId,
+  chapterId,
+  saved,
+  otherDevice,
+  strict = false,
+}: ReadingTrackerProps) {
   const [banner, setBanner] = useState<OtherDeviceSpot | null>(otherDevice);
+  // Shown for a few seconds after coming back from somewhere else.
+  const [awayNote, setAwayNote] = useState<string | null>(null);
+  const strictRef = useRef(strict);
+  strictRef.current = strict;
+  useEffect(() => {
+    if (!awayNote) return;
+    const t = window.setTimeout(() => setAwayNote(null), 6000);
+    return () => window.clearTimeout(t);
+  }, [awayNote]);
   const deviceRef = useRef<Device | null>(null);
 
   // In book mode, turning a page means the reader chose where to read: the offer goes away.
@@ -195,6 +222,50 @@ export function ReadingTracker({ bookId, chapterId, saved, otherDevice }: Readin
     const doneReads = new Set<string>();
     const visibleMs = new Map<number, number>();
     const onScreen = new Set<number>();
+    // Ribbon is "here" when its tab is showing and it has focus. Focus inside the
+    // music player (an iframe on this page) still counts as here.
+    const here = () =>
+      document.visibilityState === "visible" &&
+      (document.hasFocus() || document.activeElement instanceof HTMLIFrameElement);
+    let run: FocusRun = (() => {
+      try {
+        return restoreRun(sessionStorage.getItem(RUN_KEY), Date.now());
+      } catch {
+        return newRun(Date.now());
+      }
+    })();
+    let lastSentRun = -1;
+    const saveRun = () => {
+      try {
+        sessionStorage.setItem(RUN_KEY, JSON.stringify(run));
+      } catch {
+        // Storage blocked: the run still lasts for this page.
+      }
+    };
+    let awaySince: number | null = null;
+    const leave = () => {
+      if (awaySince !== null || here()) return;
+      awaySince = Date.now();
+      saveRun();
+    };
+    const comeBack = () => {
+      if (awaySince === null || !here()) return;
+      const now = Date.now();
+      const away = now - awaySince;
+      awaySince = null;
+      const next = resume(run, away, now);
+      if (next.broken) send(false); // save the finished run before starting the next
+      run = next.run;
+      saveRun();
+      if (away > GRACE_MS) {
+        setAwayNote(
+          strictRef.current && next.broken
+            ? `You were away ${awayLabel(away)}, so your focus run restarted.`
+            : `Away ${awayLabel(away)}. That time wasn't counted.`,
+        );
+      }
+    };
+
     const session = {
       id: crypto.randomUUID(),
       startedAt: "",
@@ -270,7 +341,8 @@ export function ReadingTracker({ bookId, chapterId, saved, otherDevice }: Readin
       const changed =
         spotKey !== lastSentSpot ||
         pendingReads.size > 0 ||
-        session.activeSeconds !== session.lastSentActive;
+        session.activeSeconds !== session.lastSentActive ||
+        Math.round(run.seconds) !== lastSentRun;
       if (!changed) return;
       const reads = [...pendingReads];
       const payload = {
@@ -292,7 +364,11 @@ export function ReadingTracker({ bookId, chapterId, saved, otherDevice }: Readin
           activeSeconds: Math.round(session.activeSeconds),
         },
         reads,
+        ...(run.seconds >= 1
+          ? { run: { id: run.id, startedAt: run.startedAt, seconds: Math.round(run.seconds) } }
+          : {}),
       };
+      lastSentRun = Math.round(run.seconds);
       const sentActive = session.activeSeconds;
       lastSentSpot = spotKey;
       session.lastSentActive = sentActive;
@@ -326,10 +402,21 @@ export function ReadingTracker({ bookId, chapterId, saved, otherDevice }: Readin
       const now = Date.now();
       const elapsed = Math.min(now - lastTick, 2000);
       lastTick = now;
-      if (document.visibilityState !== "visible") return;
+      // Only time with Ribbon in front of you counts: not a background tab, not another app.
+      if (!here()) {
+        leave();
+        return;
+      }
+      comeBack();
       if (!engaged && now - visibleSince >= DWELL_ENGAGE_MS) onActivity();
       if (!engaged) return;
-      if (now - lastActivity < ACTIVE_WINDOW_MS) session.activeSeconds += elapsed / 1000;
+      if (now - lastActivity < ACTIVE_WINDOW_MS) {
+        session.activeSeconds += elapsed / 1000;
+        run.seconds += elapsed / 1000;
+      }
+      run.lastHereAt = now;
+      saveRun();
+      window.dispatchEvent(new CustomEvent(FOCUS_RUN_EVENT, { detail: run.seconds }));
       session.activeSeconds = Math.round(session.activeSeconds * 10) / 10;
       // Lets the top bar's goal ring fill live while reading.
       window.dispatchEvent(
@@ -353,9 +440,17 @@ export function ReadingTracker({ bookId, chapterId, saved, otherDevice }: Readin
     };
 
     const onVisibility = () => {
-      if (document.visibilityState === "hidden") send(true);
-      else visibleSince = Date.now();
+      if (document.visibilityState === "hidden") {
+        leave();
+        send(true);
+      } else {
+        visibleSince = Date.now();
+        comeBack();
+      }
     };
+    // Focus moving into the music player's iframe also fires blur; check once it has settled.
+    const onBlur = () => window.setTimeout(leave, 0);
+    const onFocus = () => comeBack();
     const onPageHide = () => send(true);
 
     let interval = 0;
@@ -370,6 +465,8 @@ export function ReadingTracker({ bookId, chapterId, saved, otherDevice }: Readin
         window.addEventListener(type, onActivity, { passive: true });
       }
       document.addEventListener("visibilitychange", onVisibility);
+      window.addEventListener("blur", onBlur);
+      window.addEventListener("focus", onFocus);
       window.addEventListener("pagehide", onPageHide);
       interval = window.setInterval(tick, 1000);
     };
@@ -388,61 +485,74 @@ export function ReadingTracker({ bookId, chapterId, saved, otherDevice }: Readin
         window.removeEventListener(type, onActivity);
       }
       document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("blur", onBlur);
+      window.removeEventListener("focus", onFocus);
       window.removeEventListener("pagehide", onPageHide);
     };
   }, [bookId, chapterId, saved]);
 
-  if (!banner) return null;
+  const note =
+    awayNote &&
+    createPortal(
+      <p className="hl-toast away-note" role="status">
+        {awayNote}
+      </p>,
+      document.body,
+    );
+  if (!banner) return note || null;
   const sameChapter = banner.chapterId === chapterId;
   const href = sameChapter
     ? `#${banner.blockId}`
     : `/books/${bookId}/${banner.chapterId}#${banner.blockId}`;
   return (
-    <div className="resume-banner" role="status">
-      <p className="min-w-0 flex-1 text-sm leading-snug text-pretty">
-        You were at <span className="font-semibold">{banner.sectionTitle}</span>
-        {!sameChapter && <span className="text-muted"> ({banner.chapterTitle})</span>} on{" "}
-        {banner.deviceLabel},{" "}
-        {/* Server and browser may be a minute apart; either answer is fine. */}
-        <time dateTime={banner.readAt} suppressHydrationWarning>
-          {timeAgo(banner.readAt)}
-        </time>
-        .
-      </p>
-      <div className="flex shrink-0 items-center gap-1">
-        {sameChapter ? (
-          <a href={href} onClick={() => setBanner(null)} className="resume-banner-jump">
-            Jump there
-          </a>
-        ) : (
-          <Link
-            href={href as `/books/${string}`}
+    <>
+      {note}
+      <div className="resume-banner" role="status">
+        <p className="min-w-0 flex-1 text-sm leading-snug text-pretty">
+          You were at <span className="font-semibold">{banner.sectionTitle}</span>
+          {!sameChapter && <span className="text-muted"> ({banner.chapterTitle})</span>} on{" "}
+          {banner.deviceLabel},{" "}
+          {/* Server and browser may be a minute apart; either answer is fine. */}
+          <time dateTime={banner.readAt} suppressHydrationWarning>
+            {timeAgo(banner.readAt)}
+          </time>
+          .
+        </p>
+        <div className="flex shrink-0 items-center gap-1">
+          {sameChapter ? (
+            <a href={href} onClick={() => setBanner(null)} className="resume-banner-jump">
+              Jump there
+            </a>
+          ) : (
+            <Link
+              href={href as `/books/${string}`}
+              onClick={() => setBanner(null)}
+              className="resume-banner-jump"
+            >
+              Jump there
+            </Link>
+          )}
+          <button
+            type="button"
             onClick={() => setBanner(null)}
-            className="resume-banner-jump"
+            className="flex size-9 items-center justify-center rounded-full text-muted hover:bg-surface-muted hover:text-text"
+            aria-label="Dismiss"
           >
-            Jump there
-          </Link>
-        )}
-        <button
-          type="button"
-          onClick={() => setBanner(null)}
-          className="flex size-9 items-center justify-center rounded-full text-muted hover:bg-surface-muted hover:text-text"
-          aria-label="Dismiss"
-        >
-          <svg
-            width={18}
-            height={18}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={1.8}
-            strokeLinecap="round"
-            aria-hidden="true"
-          >
-            <path d="M18 6 6 18M6 6l12 12" />
-          </svg>
-        </button>
+            <svg
+              width={18}
+              height={18}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={1.8}
+              strokeLinecap="round"
+              aria-hidden="true"
+            >
+              <path d="M18 6 6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

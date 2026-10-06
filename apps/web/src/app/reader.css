@@ -667,3 +667,12 @@ html[data-measure="wide"] .reader-body {
     animation: none;
   }
 }
+
+/* "Away 3 min, not counted": at the top, clear of the resume banner and the book footer. */
+.hl-toast.away-note {
+  top: calc(4.5rem + env(safe-area-inset-top));
+  bottom: auto;
+  max-width: calc(100vw - 2rem);
+  text-align: center;
+  text-wrap: balance;
+}

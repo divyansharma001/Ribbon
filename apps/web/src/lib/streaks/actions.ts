@@ -4,12 +4,17 @@ import { refresh } from "next/cache";
 import { requireUser } from "../session";
 import { saveStreakSettings } from "./data";
 
-/** Changes the daily goal or weekends-off setting. */
-export async function updateGoal(input: { goalMinutes?: number; weekendsOff?: boolean }) {
+/** Changes the daily goal, weekends off, or strict focus. */
+export async function updateGoal(input: {
+  goalMinutes?: number;
+  weekendsOff?: boolean;
+  strictFocus?: boolean;
+}) {
   const user = await requireUser();
-  const patch: { goalMinutes?: number; weekendsOff?: boolean } = {};
+  const patch: { goalMinutes?: number; weekendsOff?: boolean; strictFocus?: boolean } = {};
   if (input.goalMinutes !== undefined) patch.goalMinutes = Number(input.goalMinutes);
   if (input.weekendsOff !== undefined) patch.weekendsOff = Boolean(input.weekendsOff);
+  if (input.strictFocus !== undefined) patch.strictFocus = Boolean(input.strictFocus);
   await saveStreakSettings(user.id, patch);
   refresh();
 }

@@ -63,7 +63,7 @@ export default async function Home() {
   const level = levelFor(xpFrom(stats));
   const { settings } = streak;
   const firstName = user.name.split(" ")[0] ?? user.name;
-  const left = Math.max(0, Math.ceil(streak.goalMinutes - streak.todayMinutes));
+  const left = Math.max(0, Math.ceil(streak.goalMinutes - streak.todayProgress));
   const days = lastDays(streak, streak.today, CALENDAR_WEEKS * 7);
   const dateLine = new Date(`${streak.today}T12:00:00Z`).toLocaleDateString("en-US", {
     weekday: "long",
@@ -149,7 +149,7 @@ export default async function Home() {
                   )}
                 </p>
               </div>
-              <GoalRing minutes={streak.todayMinutes} goal={streak.goalMinutes} />
+              <GoalRing minutes={streak.todayProgress} goal={streak.goalMinutes} />
             </div>
             <WeekStrip days={streak.days} today={streak.today} />
             <p className="home-streak-note">
@@ -157,7 +157,9 @@ export default async function Home() {
                 ? "Today's goal is done. See you tomorrow."
                 : streak.repairMinutes
                   ? `You missed yesterday. Read ${streak.repairMinutes} minutes today to repair your streak.`
-                  : `${left} ${left === 1 ? "minute" : "minutes"} left to reach today's goal.`}
+                  : settings.strictFocus
+                    ? `Read ${streak.goalMinutes} minutes in one go to reach today's goal. Best run today: ${Math.floor(streak.todayProgress)} min.`
+                    : `${left} ${left === 1 ? "minute" : "minutes"} left to reach today's goal.`}
             </p>
           </section>
         </div>

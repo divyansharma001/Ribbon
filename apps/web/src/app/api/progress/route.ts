@@ -32,6 +32,14 @@ const Body = z.object({
     })
     .optional(),
   reads: z.array(id).max(500).default([]),
+  /** The current focus run (reading without leaving Ribbon). */
+  run: z
+    .object({
+      id: z.uuid(),
+      startedAt: isoTime,
+      seconds: z.number().min(0).max(86_400).transform(Math.round),
+    })
+    .optional(),
 });
 
 /** Clock skew we accept from a device. Anything further in the future is rejected. */
@@ -52,9 +60,12 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: "invalid body" }, { status: 400 });
   }
   const now = Date.now();
-  const times = [body.position?.readAt, body.session?.startedAt, body.session?.endedAt].filter(
-    (t): t is string => t !== undefined,
-  );
+  const times = [
+    body.position?.readAt,
+    body.session?.startedAt,
+    body.session?.endedAt,
+    body.run?.startedAt,
+  ].filter((t): t is string => t !== undefined);
   if (times.some((t) => Date.parse(t) > now + MAX_FUTURE_MS)) {
     return Response.json({ error: "time in the future" }, { status: 400 });
   }
@@ -164,6 +175,25 @@ export async function POST(request: NextRequest) {
           })),
         )
         .onConflictDoNothing();
+    }
+
+    if (body.run) {
+      const t = schema.focusRuns;
+      // A run only grows; late or repeated requests never shrink it.
+      await tx
+        .insert(t)
+        .values({
+          id: body.run.id,
+          userId,
+          deviceId: body.device.id,
+          startedAt: new Date(body.run.startedAt),
+          seconds: body.run.seconds,
+        })
+        .onConflictDoUpdate({
+          target: t.id,
+          set: { seconds: sql`greatest(${t.seconds}, excluded.seconds)`, updatedAt: new Date() },
+          setWhere: sql`${t.userId} = excluded.user_id`,
+        });
     }
   });
 

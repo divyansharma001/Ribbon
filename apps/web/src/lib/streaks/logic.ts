@@ -13,6 +13,8 @@
  *   day, once per calendar month.
  * - With "weekends off", Saturday and Sunday never break the streak.
  * - Today never breaks the streak; it only adds to it once the goal is met.
+ * - In strict focus mode, what must reach the goal is the day's longest
+ *   unbroken reading run, not the day's total minutes.
  */
 
 export interface StreakRules {
@@ -34,6 +36,8 @@ export interface StreakSummary {
   best: number;
   freezes: number;
   todayMinutes: number;
+  /** What counts towards today's goal: today's minutes, or in strict mode today's longest run. */
+  todayProgress: number;
   goalMinutes: number;
   todayMet: boolean;
   /** Yesterday was missed with no freeze; reading this many minutes today repairs it. */
@@ -72,9 +76,12 @@ export function computeStreak(
   today: string,
   /** Local dates on which a freeze was gifted. */
   giftedOn: readonly string[] = [],
+  /** Strict focus: each day's longest unbroken run, in minutes. Judged instead of total minutes. */
+  runsByDay?: ReadonlyMap<string, number>,
 ): StreakSummary {
   const goal = rules.goalMinutes;
   const minutes = (date: string) => minutesByDay.get(date) ?? 0;
+  const progress = (date: string) => (runsByDay ? (runsByDay.get(date) ?? 0) : minutes(date));
   const firstDay = [...minutesByDay.keys()].filter((d) => d <= today).sort()[0] ?? today;
 
   let streak = 0;
@@ -97,7 +104,7 @@ export function computeStreak(
   for (let date = firstDay; date < today; date = addDays(date, 1)) {
     receiveGifts(date);
     const mins = minutes(date);
-    const met = mins >= goal;
+    const met = progress(date) >= goal;
     let status: DayStatus;
 
     if (met) {
@@ -116,7 +123,7 @@ export function computeStreak(
     } else {
       const next = addDays(date, 1);
       const month = next.slice(0, 7);
-      if (streak > 0 && minutes(next) >= goal * 2 && !repairedMonths.has(month)) {
+      if (streak > 0 && progress(next) >= goal * 2 && !repairedMonths.has(month)) {
         repairedMonths.add(month);
         status = "repaired";
       } else {
@@ -131,7 +138,8 @@ export function computeStreak(
 
   receiveGifts(today);
   const todayMinutes = minutes(today);
-  const todayMet = todayMinutes >= goal;
+  const todayProgress = progress(today);
+  const todayMet = todayProgress >= goal;
   if (todayMet) streak++;
   best = Math.max(best, streak);
   days.push({ date: today, minutes: todayMinutes, status: todayMet ? "met" : "pending" });
@@ -150,6 +158,7 @@ export function computeStreak(
     best,
     freezes: freezes + gifted,
     todayMinutes,
+    todayProgress,
     goalMinutes: goal,
     todayMet,
     repairMinutes,

@@ -9,12 +9,15 @@ const GOALS = [5, 10, 15, 20, 30, 45];
 export function GoalSettings({
   goalMinutes,
   weekendsOff,
+  strictFocus,
 }: {
   goalMinutes: number;
   weekendsOff: boolean;
+  strictFocus: boolean;
 }) {
   const [goal, setGoal] = useState(goalMinutes);
   const [weekends, setWeekends] = useState(weekendsOff);
+  const [strict, setStrict] = useState(strictFocus);
   const [pending, start] = useTransition();
 
   return (
@@ -53,6 +56,25 @@ export function GoalSettings({
           <span className="goal-settings-hint">Saturdays and Sundays never break your streak</span>
         </span>
         <span className="menu-switch" data-on={weekends ? "true" : "false"} aria-hidden="true" />
+      </button>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={strict}
+        onClick={() => {
+          setStrict(!strict);
+          start(() => updateGoal({ strictFocus: !strict }));
+        }}
+        className="goal-switch-row"
+      >
+        <span>
+          <span className="goal-settings-label">Strict focus</span>
+          <span className="goal-settings-hint">
+            Read your daily goal in one go. Leaving Ribbon for more than 10 seconds restarts the
+            run. Time away never counts either way.
+          </span>
+        </span>
+        <span className="menu-switch" data-on={strict ? "true" : "false"} aria-hidden="true" />
       </button>
     </div>
   );

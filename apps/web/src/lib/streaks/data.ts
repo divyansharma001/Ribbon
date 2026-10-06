@@ -10,11 +10,14 @@ export interface StreakSettings {
   weekendsOff: boolean;
   timeZone: string;
   reminderAt: string | null;
+  /** The daily goal must be read in one run, without leaving Ribbon. */
+  strictFocus: boolean;
 }
 
 const DEFAULTS: StreakSettings = {
   goalMinutes: 10,
   weekendsOff: false,
+  strictFocus: false,
   timeZone: "UTC",
   reminderAt: null,
 };
@@ -30,6 +33,7 @@ export const getStreakSettings = cache(async (userId: string): Promise<StreakSet
         weekendsOff: row.weekendsOff,
         timeZone: row.timeZone,
         reminderAt: row.reminderAt,
+        strictFocus: row.strictFocus,
       }
     : DEFAULTS;
 });
@@ -49,6 +53,27 @@ async function minutesByDay(userId: string, timeZone: string): Promise<Map<strin
   return minutesPerDay(sessions, timeZone);
 }
 
+/** Strict focus: each local day's longest reading run, in minutes (a run counts on the day it began). */
+async function longestRunByDay(userId: string, timeZone: string): Promise<Map<string, number>> {
+  const since = new Date(Date.now() - 400 * 86_400_000);
+  const runs = await db
+    .select({ startedAt: schema.focusRuns.startedAt, seconds: schema.focusRuns.seconds })
+    .from(schema.focusRuns)
+    .where(and(eq(schema.focusRuns.userId, userId), gt(schema.focusRuns.startedAt, since)));
+  const dayOf = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  const out = new Map<string, number>();
+  for (const r of runs) {
+    const day = dayOf.format(r.startedAt);
+    out.set(day, Math.max(out.get(day) ?? 0, r.seconds / 60));
+  }
+  return out;
+}
+
 export interface StreakView extends StreakSummary {
   settings: StreakSettings;
   today: string;
@@ -58,11 +83,12 @@ export interface StreakView extends StreakSummary {
 export async function loadStreak(userId: string): Promise<StreakView> {
   const settings = await getStreakSettings(userId);
   const today = localDate(settings.timeZone);
-  const [minutes, perks] = await Promise.all([
+  const [minutes, perks, runs] = await Promise.all([
     minutesByDay(userId, settings.timeZone),
     getPerks(userId),
+    settings.strictFocus ? longestRunByDay(userId, settings.timeZone) : undefined,
   ]);
-  const summary = computeStreak(minutes, settings, today, perks.freezeDates);
+  const summary = computeStreak(minutes, settings, today, perks.freezeDates, runs);
   return { ...summary, settings, today };
 }
 
