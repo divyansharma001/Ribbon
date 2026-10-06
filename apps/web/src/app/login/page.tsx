@@ -29,7 +29,8 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
             role="alert"
             className="mt-8 rounded-xl border border-accent/30 bg-accent-soft px-4 py-3 text-sm leading-relaxed text-pretty text-text"
           >
-            That account can’t sign in. Ribbon is a private library.
+            That account isn’t in Ribbon yet. Ribbon is invite-only: ask a friend who reads here for
+            an invite link.
           </p>
         )}
 

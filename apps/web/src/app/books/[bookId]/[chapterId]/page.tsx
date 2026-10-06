@@ -28,6 +28,7 @@ import {
   resolveAnchors,
 } from "@/lib/books";
 import { glossaryLookup, termsUsed } from "@/lib/glossary";
+import { requireBookAccess } from "@/lib/invites/data";
 import { getChapterAnswers } from "@/lib/learning/data";
 import { TEXT_SCALE } from "@/lib/prefs";
 import { getReaderPrefs } from "@/lib/prefs-server";
@@ -46,6 +47,7 @@ export async function generateMetadata({
 export default async function ChapterPage({ params }: PageProps<"/books/[bookId]/[chapterId]">) {
   const user = await requireUser();
   const { bookId, chapterId } = await params;
+  await requireBookAccess(user, bookId);
   const [book, chapter, blocks, chapters, resume, prefs, streak, answers, glossary, marks] =
     await Promise.all([
       getBook(bookId),

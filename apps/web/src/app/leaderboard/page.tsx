@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { LeagueCard } from "@/components/invites/league";
 import { RaceCard } from "@/components/records/race";
 import { RibbonMark } from "@/components/ribbon-mark";
 import { SettingsLink } from "@/components/settings-link";
+import { syncPerks } from "@/lib/invites/data";
+import { getLeague } from "@/lib/invites/league";
 import { getLearningStats } from "@/lib/learning/data";
 import { levelFor, xpFrom } from "@/lib/learning/logic";
 import { getRecords } from "@/lib/records/data";
@@ -52,7 +55,12 @@ function WeekRow({ week, rank, current }: { week: Week; rank: number; current: b
 
 export default async function LeaderboardPage() {
   const user = await requireUser();
-  const [records, stats] = await Promise.all([getRecords(user.id), getLearningStats(user.id)]);
+  await syncPerks(user.id);
+  const [records, stats, league] = await Promise.all([
+    getRecords(user.id),
+    getLearningStats(user.id),
+    getLeague(user.id),
+  ]);
   const level = levelFor(xpFrom(stats));
   const thisStart = weekStart(records.today);
   const top = records.ranked.slice(0, SHOWN);
@@ -123,6 +131,8 @@ export default async function LeaderboardPage() {
         </div>
 
         <RaceCard race={records.race} />
+
+        <LeagueCard rows={league} />
 
         <section className="home-card" aria-labelledby="weeks-title">
           <h2 id="weeks-title" className="home-section-title">

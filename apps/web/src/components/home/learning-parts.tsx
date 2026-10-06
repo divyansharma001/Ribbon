@@ -22,10 +22,13 @@ export function LevelCard({ level }: { level: Level }) {
           </>
         )}
       </p>
-      <p className="home-muted home-xp-rules">
-        Earn XP by reading (1 a minute), quick checks (10 for right first time), reviews (2 each),
-        and finishing chapters (50).
-      </p>
+      <details className="home-xp-rules">
+        <summary>How XP works</summary>
+        <p className="home-muted">
+          1 for each minute of reading, 10 for a quick check right the first time (3 if not), 2 for
+          each review, 50 for each finished chapter, and bonuses when friends you invite read.
+        </p>
+      </details>
     </section>
   );
 }
@@ -54,7 +57,18 @@ export function ReviewCard({ due, next }: { due: number; next: Date | null }) {
   );
 }
 
+/** A person with a plus: inviting friends who read. */
+const friendIcon = (
+  <>
+    <circle cx="9.5" cy="8" r="3.5" />
+    <path d="M3 20c.7-3.4 3.3-5.3 6.5-5.3s5.8 1.9 6.5 5.3M18.5 8v6M15.5 11h6" />
+  </>
+);
+
 const BADGE_ICONS: Record<string, React.ReactNode> = {
+  connector: friendIcon,
+  circle: friendIcon,
+  "book-club": friendIcon,
   "first-check": <path d="m5 12.5 4.5 4.5L19 7.5" />,
   sharp: <path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6-4.5-4.2 6.1-.7Z" />,
   chapter: <path d="M5 4.5h10a3 3 0 0 1 3 3v12H8a3 3 0 0 1-3-3Zm0 12a3 3 0 0 1 3-3h10" />,
@@ -118,7 +132,7 @@ export function BadgeShelf({ badges }: { badges: Badge[] }) {
               </svg>
             </span>
             <span className="badge-name">{b.name}</span>
-            <span className="badge-how">{b.earned ? "Earned" : b.how}</span>
+            <span className="sr-only">{b.earned ? "Earned." : `Not yet: ${b.how}`}</span>
           </li>
         ))}
       </ul>

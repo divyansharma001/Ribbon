@@ -5,6 +5,9 @@
  *
  * - A day counts when its reading minutes reach the daily goal.
  * - Every 7 counted days in a row earn a freeze (at most 2 held).
+ * - Freezes can also be gifted (invite perks). A gift is usable from the day
+ *   it is given, does not count towards the limit of 2, and is used only once
+ *   earned freezes run out.
  * - A missed day uses a freeze automatically, if there is one.
  * - With no freeze, reading double the goal on the next day repairs a missed
  *   day, once per calendar month.
@@ -67,6 +70,8 @@ export function computeStreak(
   minutesByDay: ReadonlyMap<string, number>,
   rules: StreakRules,
   today: string,
+  /** Local dates on which a freeze was gifted. */
+  giftedOn: readonly string[] = [],
 ): StreakSummary {
   const goal = rules.goalMinutes;
   const minutes = (date: string) => minutesByDay.get(date) ?? 0;
@@ -76,10 +81,21 @@ export function computeStreak(
   let best = 0;
   let freezes = 0;
   let metInRow = 0;
+  let gifted = 0;
+  const gifts = [...giftedOn].sort();
+  let nextGift = 0;
+  /** Takes in every gift given on or before this date. */
+  const receiveGifts = (date: string) => {
+    while (nextGift < gifts.length && (gifts[nextGift] ?? "") <= date) {
+      gifted++;
+      nextGift++;
+    }
+  };
   const repairedMonths = new Set<string>();
   const days: Day[] = [];
 
   for (let date = firstDay; date < today; date = addDays(date, 1)) {
+    receiveGifts(date);
     const mins = minutes(date);
     const met = mins >= goal;
     let status: DayStatus;
@@ -93,6 +109,9 @@ export function computeStreak(
       status = "off";
     } else if (streak > 0 && freezes > 0) {
       freezes--;
+      status = "frozen";
+    } else if (streak > 0 && gifted > 0) {
+      gifted--;
       status = "frozen";
     } else {
       const next = addDays(date, 1);
@@ -110,6 +129,7 @@ export function computeStreak(
     days.push({ date, minutes: mins, status });
   }
 
+  receiveGifts(today);
   const todayMinutes = minutes(today);
   const todayMet = todayMinutes >= goal;
   if (todayMet) streak++;
@@ -128,7 +148,7 @@ export function computeStreak(
   return {
     current: streak,
     best,
-    freezes,
+    freezes: freezes + gifted,
     todayMinutes,
     goalMinutes: goal,
     todayMet,

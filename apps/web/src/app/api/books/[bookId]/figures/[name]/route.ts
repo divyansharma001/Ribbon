@@ -4,6 +4,7 @@ import { figureStoragePath } from "@ribbon/book-schema";
 import { get } from "@vercel/blob";
 import type { NextRequest } from "next/server";
 import { auth } from "@/lib/auth";
+import { hasBookAccess } from "@/lib/invites/data";
 
 const NAME = /^[\w-]+\.png$/;
 const BOOK = /^[\w-]+$/;
@@ -19,6 +20,9 @@ export async function GET(
 
   const { bookId, name } = await ctx.params;
   if (!BOOK.test(bookId) || !NAME.test(name)) return new Response("Not found", { status: 404 });
+  if (!(await hasBookAccess(session.user, bookId))) {
+    return new Response("Confirm you own this book first", { status: 403 });
+  }
   const path = figureStoragePath(bookId, `figures/${name}`);
 
   if (process.env.BLOB_STORE_ID || process.env.BLOB_READ_WRITE_TOKEN) {

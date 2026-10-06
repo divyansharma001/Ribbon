@@ -43,6 +43,9 @@ export const BADGE_MARKS: Record<string, string> = {
   hundred: "100",
   reviewer: "↻",
   hours: "10h",
+  connector: "+1",
+  circle: "+3",
+  "book-club": "+5",
 };
 
 const RIBBON = "M0 0h12v17l-6-4.4L0 17z";

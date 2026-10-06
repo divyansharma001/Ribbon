@@ -15,6 +15,8 @@ export interface DayActivity {
   right: number;
   reviews: number;
   chaptersFinished: number;
+  /** XP from invite perks given that day. */
+  bonusXp?: number;
 }
 
 const EMPTY: DayActivity = { minutes: 0, answered: 0, right: 0, reviews: 0, chaptersFinished: 0 };
@@ -26,7 +28,8 @@ export function dayXp(d: DayActivity): number {
       d.right * XP_RULES.firstTryCorrect +
       (d.answered - d.right) * XP_RULES.answeredWrong +
       d.reviews * XP_RULES.review +
-      d.chaptersFinished * XP_RULES.chapterFinished,
+      d.chaptersFinished * XP_RULES.chapterFinished +
+      (d.bonusXp ?? 0),
   );
 }
 

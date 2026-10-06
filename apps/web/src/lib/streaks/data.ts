@@ -2,6 +2,7 @@ import "server-only";
 import { and, eq, gt, schema } from "@ribbon/db";
 import { cache } from "react";
 import { db } from "../db";
+import { getPerks } from "../invites/perks";
 import { computeStreak, localDate, minutesPerDay, type StreakSummary } from "./logic";
 
 export interface StreakSettings {
@@ -53,12 +54,20 @@ export interface StreakView extends StreakSummary {
   today: string;
 }
 
-export const getStreak = cache(async (userId: string): Promise<StreakView> => {
+/** The streak, worked out fresh. Most callers want the cached `getStreak`. */
+export async function loadStreak(userId: string): Promise<StreakView> {
   const settings = await getStreakSettings(userId);
   const today = localDate(settings.timeZone);
-  const summary = computeStreak(await minutesByDay(userId, settings.timeZone), settings, today);
+  const [minutes, perks] = await Promise.all([
+    minutesByDay(userId, settings.timeZone),
+    getPerks(userId),
+  ]);
+  const summary = computeStreak(minutes, settings, today, perks.freezeDates);
   return { ...summary, settings, today };
-});
+}
+
+/** The streak, once per request. */
+export const getStreak = cache(loadStreak);
 
 /** Saves goal settings. Values are checked here, since this is called from a server action. */
 export async function saveStreakSettings(

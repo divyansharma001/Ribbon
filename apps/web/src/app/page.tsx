@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { GoalSettings, TimeZoneSync } from "@/components/home/goal-settings";
+import { TimeZoneSync } from "@/components/home/goal-settings";
 import { BadgeShelf, LevelCard, ReviewCard } from "@/components/home/learning-parts";
 import {
   FlameIcon,
@@ -9,12 +9,15 @@ import {
   StreakCalendar,
   WeekStrip,
 } from "@/components/home/streak-parts";
+import { LeagueCard } from "@/components/invites/league";
 import { RaceCard } from "@/components/records/race";
 import { RibbonMark } from "@/components/ribbon-mark";
 import { SettingsLink } from "@/components/settings-link";
 import { SoundButton } from "@/components/sound/sound-button";
 import { ThemePicker } from "@/components/theme-picker";
 import { getBookProgress, getContinueReading } from "@/lib/home";
+import { syncPerks } from "@/lib/invites/data";
+import { getLeague } from "@/lib/invites/league";
 import { getDueCount, getLearningStats, getNextDue } from "@/lib/learning/data";
 import { badgesFor, levelFor, xpFrom } from "@/lib/learning/logic";
 import { timeAgo } from "@/lib/reading/logic";
@@ -45,7 +48,9 @@ function greeting(timeZone: string): string {
 
 export default async function Home() {
   const user = await requireUser();
-  const [streak, last, books, stats, due, nextDue, records] = await Promise.all([
+  // Perks earned through friends land before XP and streaks are read.
+  await syncPerks(user.id);
+  const [streak, last, books, stats, due, nextDue, records, league] = await Promise.all([
     getStreak(user.id),
     getContinueReading(user.id),
     getBookProgress(user.id),
@@ -53,6 +58,7 @@ export default async function Home() {
     getDueCount(user.id),
     getNextDue(user.id),
     getRecords(user.id),
+    getLeague(user.id),
   ]);
   const level = levelFor(xpFrom(stats));
   const { settings } = streak;
@@ -210,16 +216,7 @@ export default async function Home() {
             ))}
           </section>
 
-          <section className="home-card" aria-labelledby="goal-title">
-            <h2 id="goal-title" className="home-section-title">
-              Your goal
-            </h2>
-            <GoalSettings goalMinutes={settings.goalMinutes} weekendsOff={settings.weekendsOff} />
-            <p className="home-muted home-rules">
-              Every 7 days in a row earns a freeze (up to 2), which saves your streak on a missed
-              day. Once a month, reading double your goal the day after a miss repairs it.
-            </p>
-          </section>
+          <LeagueCard rows={league} compact />
         </div>
       </main>
     </div>

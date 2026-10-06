@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { E2E_URL } from "../playwright.config";
 import { useDevice } from "./support/device";
 
-test("home shows where you were, the streak, and saves the daily goal", async ({
+test("home shows where you were and the streak, and follows the goal set in Settings", async ({
   page,
   context,
 }) => {
@@ -31,6 +31,8 @@ test("home shows where you were, the streak, and saves the daily goal", async ({
       .last(),
   ).toBeVisible();
 
+  // The daily goal is set in Settings, and Home's streak card follows it.
+  await page.goto("/settings");
   await page.getByRole("button", { name: "20 min" }).click();
   await expect(page.getByRole("button", { name: "20 min" })).toHaveAttribute(
     "aria-pressed",
@@ -41,5 +43,6 @@ test("home shows where you were, the streak, and saves the daily goal", async ({
     "aria-pressed",
     "true",
   );
+  await page.goto("/");
   await expect(page.locator(".home-streak-note")).toContainText(/20 minutes left|done|repair/);
 });

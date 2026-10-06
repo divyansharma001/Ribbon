@@ -87,6 +87,28 @@ export function ReadingTracker({ bookId, chapterId, saved, otherDevice }: Readin
   const [banner, setBanner] = useState<OtherDeviceSpot | null>(otherDevice);
   const deviceRef = useRef<Device | null>(null);
 
+  // In book mode, turning a page means the reader chose where to read: the offer goes away.
+  const showing = banner !== null;
+  useEffect(() => {
+    if (!showing) return;
+    const surface = getReadingSurface();
+    if (!surface) return;
+    let stop = () => {};
+    // Wait until the book has opened on its first page, then watch for a turn.
+    const start = window.setTimeout(() => {
+      const first = surface.page();
+      const onMove = () => {
+        if (surface.page() !== first) setBanner(null);
+      };
+      window.addEventListener(SURFACE_MOVED, onMove);
+      stop = () => window.removeEventListener(SURFACE_MOVED, onMove);
+    }, 1500);
+    return () => {
+      window.clearTimeout(start);
+      stop();
+    };
+  }, [showing]);
+
   useEffect(() => {
     const device = getDevice();
     deviceRef.current = device;

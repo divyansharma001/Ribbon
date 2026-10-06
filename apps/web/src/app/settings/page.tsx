@@ -59,6 +59,11 @@ export default async function SettingsPage() {
             Streak
           </h2>
           <GoalSettings goalMinutes={goal.goalMinutes} weekendsOff={goal.weekendsOff} />
+          <p className="home-muted">
+            Every 7 days in a row earns a freeze (up to 2), which saves your streak on a missed day.
+            Friends can gift you more. Once a month, reading double your goal the day after a miss
+            repairs it.
+          </p>
           <p className="set-hint set-zone">
             Days start at midnight {zoneName(goal.timeZone)} ({goal.timeZone.replace(/_/g, " ")}),
             taken from this device.
@@ -95,6 +100,9 @@ export default async function SettingsPage() {
             </Link>
             <Link href="/leaderboard" className="ov-secondary">
               Leaderboard
+            </Link>
+            <Link href="/invite" className="ov-secondary">
+              Invite friends
             </Link>
           </div>
         </section>

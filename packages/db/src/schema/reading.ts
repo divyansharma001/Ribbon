@@ -10,6 +10,7 @@ import {
   real,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 import { user } from "./auth.ts";
@@ -247,4 +248,60 @@ export const publicProfiles = pgTable(
     updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [check("public_profiles_handle", sql`${t.handle} ~ '^[a-z0-9][a-z0-9-]{1,28}[a-z0-9]$'`)],
+);
+
+/**
+ * Invite links. Each works once and expires. The person who uses it is
+ * recorded, which is also how Ribbon knows who invited whom.
+ */
+export const invites = pgTable(
+  "invites",
+  {
+    id: uuid().primaryKey(),
+    /** The secret part of the link, /invite/<code>. */
+    code: text().notNull().unique(),
+    inviterId: userId(),
+    createdAt: createdAt(),
+    expiresAt: timestamp({ withTimezone: true }).notNull(),
+    usedBy: text().references(() => user.id, { onDelete: "set null" }),
+    usedAt: timestamp({ withTimezone: true }),
+    revokedAt: timestamp({ withTimezone: true }),
+  },
+  (t) => [
+    index("invites_inviter_idx").on(t.inviterId),
+    uniqueIndex("invites_used_by_idx").on(t.usedBy),
+  ],
+);
+
+/** A reader confirmed they own a copy of this book, which unlocks it for them. */
+export const bookAccess = pgTable(
+  "book_access",
+  {
+    userId: userId(),
+    bookId: bookId(),
+    confirmedAt: createdAt(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.bookId] })],
+);
+
+/**
+ * Perks from inviting friends (bonus XP, gifted streak freezes), each given
+ * once: the unique key is the reader, the reason, and the friend it came from.
+ */
+export const perkGrants = pgTable(
+  "perk_grants",
+  {
+    id: uuid().primaryKey(),
+    userId: userId(),
+    reason: text().$type<"friend-first-chapter" | "friend-week-streak">().notNull(),
+    friendId: text()
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    xp: integer().notNull().default(0),
+    freezes: integer().notNull().default(0),
+    /** The reader's local date when given; gifted freezes count from this day. */
+    grantedOn: text().notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [uniqueIndex("perk_grants_once_idx").on(t.userId, t.reason, t.friendId)],
 );

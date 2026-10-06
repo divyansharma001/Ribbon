@@ -40,6 +40,10 @@ export interface LearningStats {
   chaptersFinished: number;
   /** Chapter checks answered all right on the first try. */
   perfectChecks: number;
+  /** XP from invite perks. */
+  bonusXp: number;
+  /** Friends this reader invited who have finished a chapter. */
+  readingFriends: number;
 }
 
 export const XP_RULES = {
@@ -56,7 +60,8 @@ export function xpFrom(s: LearningStats): number {
       s.firstTryCorrect * XP_RULES.firstTryCorrect +
       (s.answered - s.firstTryCorrect) * XP_RULES.answeredWrong +
       s.reviews * XP_RULES.review +
-      s.chaptersFinished * XP_RULES.chapterFinished,
+      s.chaptersFinished * XP_RULES.chapterFinished +
+      s.bonusXp,
   );
 }
 
@@ -124,5 +129,8 @@ export function badgesFor(s: LearningStats): Badge[] {
   add("hundred", "Centurion", "Reach a 100-day streak", s.bestStreak >= 100);
   add("reviewer", "Reviewer", "Do 50 reviews", s.reviews >= 50);
   add("hours", "Ten hours", "Read for 10 hours in total", s.minutesRead >= 600);
+  add("connector", "Connector", "Invite a friend who finishes a chapter", s.readingFriends >= 1);
+  add("circle", "Circle", "Invite 3 friends who finish a chapter", s.readingFriends >= 3);
+  add("book-club", "Book club", "Invite 5 friends who finish a chapter", s.readingFriends >= 5);
   return list.map((b) => ({ ...b, earned: earned.has(b.id) }));
 }

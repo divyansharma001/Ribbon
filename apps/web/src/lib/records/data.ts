@@ -2,6 +2,7 @@ import "server-only";
 import { and, eq, gt, isNotNull, schema } from "@ribbon/db";
 import { cache } from "react";
 import { db } from "../db";
+import { getPerks } from "../invites/perks";
 import { getStreak } from "../streaks/data";
 import { minutesPerDay } from "../streaks/logic";
 import { type DayActivity, finishedAt, type YouVsYou, youVsYou } from "./logic";
@@ -77,12 +78,14 @@ export const getRecords = cache(async (userId: string): Promise<RecordsView> => 
 
   const days = new Map<string, DayActivity>();
   const bump = (date: string, add: Partial<DayActivity>) => {
-    const d = days.get(date) ?? {
+    const d: Required<DayActivity> = {
       minutes: 0,
       answered: 0,
       right: 0,
       reviews: 0,
       chaptersFinished: 0,
+      bonusXp: 0,
+      ...days.get(date),
     };
     for (const [k, v] of Object.entries(add) as [keyof DayActivity, number][]) d[k] += v;
     days.set(date, d);
@@ -90,6 +93,7 @@ export const getRecords = cache(async (userId: string): Promise<RecordsView> => 
   for (const [date, minutes] of minutesPerDay(sessions, timeZone)) bump(date, { minutes });
   for (const a of answers) bump(dayOf.format(a.at), { answered: 1, right: a.firstCorrect ? 1 : 0 });
   for (const r of reviews) bump(dayOf.format(r.at), { reviews: 1 });
+  for (const [date, xp] of (await getPerks(userId)).xpByDay) bump(date, { bonusXp: xp });
 
   // Each finished chapter counts on the day it was finished, and may be the fastest.
   const byChapter = new Map<string, typeof reads>();

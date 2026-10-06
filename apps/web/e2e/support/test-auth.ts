@@ -24,6 +24,7 @@ export async function createTestLogin(options: {
   secret: string;
   baseURL: string;
   email?: string;
+  name?: string;
 }): Promise<{ userId: string; cookies: TestCookie[] }> {
   const { db, pool } = createDb(options.databaseUrl);
   try {
@@ -38,7 +39,9 @@ export async function createTestLogin(options: {
     const [existing] = await db.select().from(schema.user).where(eq(schema.user.email, email));
     const user =
       existing ??
-      (await test.saveUser(test.createUser({ email, name: "Test Reader", emailVerified: true })));
+      (await test.saveUser(
+        test.createUser({ email, name: options.name ?? "Test Reader", emailVerified: true }),
+      ));
     const { cookies } = await test.login({ userId: user.id });
     const domain = new URL(options.baseURL).hostname;
     return {

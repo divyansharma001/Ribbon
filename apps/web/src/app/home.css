@@ -202,7 +202,6 @@
   color: var(--freeze);
 }
 .home-streak-note {
-  margin-top: auto;
   padding-top: 1.1rem;
   font-size: 14px;
   color: var(--text);
@@ -451,6 +450,10 @@
   padding: 0;
   list-style: none;
 }
+.home-streak .week-strip {
+  /* Sits at the bottom of the streak card, above the note. */
+  margin-top: auto;
+}
 .week-strip li {
   display: flex;
   flex-direction: column;
@@ -571,9 +574,29 @@
   background: var(--accent);
 }
 .home-xp-rules {
-  margin-top: 0.9rem;
+  margin-top: 0.75rem;
   line-height: 1.5;
   text-wrap: pretty;
+}
+.home-xp-rules summary {
+  width: fit-content;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  cursor: pointer;
+  list-style: none;
+}
+.home-xp-rules summary::-webkit-details-marker {
+  display: none;
+}
+.home-xp-rules summary::after {
+  content: " +";
+}
+.home-xp-rules[open] summary::after {
+  content: " −";
+}
+.home-xp-rules p {
+  margin-top: 0.4rem;
 }
 .home-review {
   display: flex;
@@ -592,10 +615,11 @@
   margin-bottom: 1rem;
 }
 
+/* Badges: small tiles, how to earn each in its tooltip. */
 .badge-shelf {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
-  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fill, minmax(6.25rem, 1fr));
+  gap: 0.5rem;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -603,11 +627,20 @@
 .badge {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 0.25rem;
-  padding: 0.85rem;
-  border: 1px solid var(--border);
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.7rem 0.4rem 0.6rem;
   border-radius: 0.9rem;
+  text-align: center;
+  cursor: default;
+}
+.badge:hover {
+  background: var(--surface-muted);
+}
+@media (max-width: 480px) {
+  .badge-shelf {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 .badge-icon {
   display: flex;
@@ -629,15 +662,14 @@
   color: var(--accent);
 }
 .badge-name {
-  font-size: 14px;
+  font-size: 12.5px;
   font-weight: 600;
+  line-height: 1.25;
+}
+.badge[data-earned="false"] .badge-icon {
+  opacity: 0.55;
 }
 .badge[data-earned="false"] .badge-name {
-  color: var(--text-muted);
-}
-.badge-how {
-  font-size: 12px;
-  line-height: 1.4;
   color: var(--text-muted);
 }
 
@@ -1274,6 +1306,11 @@
   font-size: 13px;
   font-weight: 700;
 }
+/* Longer marks like "+100" need smaller text to fit the circle. */
+.share-mark[data-long] {
+  font-size: 10.5px;
+  letter-spacing: -0.02em;
+}
 .share-linkedin {
   flex-shrink: 0;
   padding: 0.4rem 0.85rem;
@@ -1297,4 +1334,200 @@
   .share-linkedin {
     margin-left: 3.05rem;
   }
+}
+
+/* Invites and the friends league */
+.perk-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+@media (max-width: 640px) {
+  .perk-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.perk {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.8rem;
+}
+.perk-title {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+}
+.perk-detail {
+  display: block;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+.invite-manager {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.invite-create {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+.invite-create .home-button,
+.league-invite,
+.join-button,
+.own-button {
+  margin-top: 0;
+}
+.invite-button:disabled,
+.own-button:disabled,
+.join-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.invite-fresh {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.invite-fresh .ov-secondary {
+  align-self: flex-start;
+}
+.invite-list {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--border);
+}
+.invite-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.9rem;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+  font-size: 14px;
+}
+.invite-status {
+  min-width: 5.5rem;
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  background: var(--surface-muted);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  color: var(--text-muted);
+}
+.invite-row[data-status="pending"] .invite-status {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+.invite-row[data-status="used"] .invite-status {
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+.invite-what {
+  flex: 1;
+}
+.invite-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+.league {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+.league-level {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+.league-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.8rem;
+}
+.league-perks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 13.5px;
+}
+.league-perks li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.league-perks .share-mark {
+  width: 1.9rem;
+  height: 1.9rem;
+  font-size: 11.5px;
+}
+
+/* Invite landing, welcome, and unlock pages */
+.join-main {
+  display: flex;
+  min-height: 100dvh;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+.join-card {
+  display: flex;
+  width: 100%;
+  max-width: 34rem;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 2rem;
+}
+.join-title {
+  font-family: var(--font-serif);
+  font-size: clamp(1.5rem, 4vw, 1.9rem);
+  font-weight: 600;
+  line-height: 1.2;
+  text-wrap: balance;
+}
+.join-pitch {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-muted);
+  text-wrap: pretty;
+}
+.join-card .perk-list {
+  width: 100%;
+  grid-template-columns: minmax(0, 1fr);
+}
+.join-back {
+  font-size: 13.5px;
+}
+.join-back:hover {
+  color: var(--accent);
+}
+.own-form {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+}
+.own-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 0.8rem;
+  font-size: 15px;
+  cursor: pointer;
+}
+.own-check input {
+  width: 1.1rem;
+  height: 1.1rem;
+  margin-top: 0.15rem;
+  accent-color: var(--accent);
 }

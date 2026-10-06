@@ -36,6 +36,8 @@ const empty: LearningStats = {
   bestStreak: 0,
   chaptersFinished: 0,
   perfectChecks: 0,
+  bonusXp: 0,
+  readingFriends: 0,
 };
 
 describe("XP and levels", () => {
@@ -50,6 +52,10 @@ describe("XP and levels", () => {
         chaptersFinished: 1,
       }),
     ).toBe(30 + 40 + 3 + 20 + 50);
+  });
+
+  it("adds XP from invite perks", () => {
+    expect(xpFrom({ ...empty, minutesRead: 10, bonusXp: 100 })).toBe(110);
   });
 
   it("names the level and the progress to the next", () => {
@@ -69,5 +75,16 @@ describe("badges", () => {
     const earned = badges.filter((b) => b.earned).map((b) => b.id);
     expect(earned).toEqual(["first-check", "week"]);
     expect(badges.length).toBeGreaterThan(earned.length);
+  });
+
+  it("gives Connector badges for invited friends who finish a chapter", () => {
+    const earned = (n: number) =>
+      badgesFor({ ...empty, readingFriends: n })
+        .filter((b) => b.earned)
+        .map((b) => b.id);
+    expect(earned(0)).toEqual([]);
+    expect(earned(1)).toEqual(["connector"]);
+    expect(earned(3)).toEqual(["connector", "circle"]);
+    expect(earned(5)).toEqual(["connector", "circle", "book-club"]);
   });
 });

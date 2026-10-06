@@ -8,6 +8,7 @@ import { ThemePicker } from "@/components/theme-picker";
 import { getBookNotes, type NoteEntry } from "@/lib/annotations/data";
 import { getBook } from "@/lib/books";
 import { getContinueReading } from "@/lib/home";
+import { requireBookAccess } from "@/lib/invites/data";
 import { getDueCount } from "@/lib/learning/data";
 import { getBookOverview } from "@/lib/overview/data";
 import {
@@ -156,6 +157,7 @@ function NotesSection({ bookId, notes }: { bookId: string; notes: NoteEntry[] })
 export default async function BookPage({ params }: PageProps<"/books/[bookId]">) {
   const user = await requireUser();
   const { bookId } = await params;
+  await requireBookAccess(user, bookId);
   const [book, chapters, last, due, notes] = await Promise.all([
     getBook(bookId),
     getBookOverview(user.id, bookId),

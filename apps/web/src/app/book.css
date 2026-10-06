@@ -307,7 +307,15 @@ html.book-mode .reader-bar {
 }
 
 /* In book mode the "other device" banner sits under the top bar, clear of the page counter. */
+/* Over the page-number footer, not the text, and one line on wide screens. */
 html.book-mode .resume-banner {
-  top: 4.25rem;
-  bottom: auto;
+  bottom: calc(0.35rem + env(safe-area-inset-bottom));
+  padding-block: 0.35rem;
+}
+@media (min-width: 640px) {
+  html.book-mode .resume-banner p {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }

@@ -39,6 +39,25 @@ describe("computeStreak", () => {
     expect(s.freezes).toBe(0);
   });
 
+  it("uses a gifted freeze on a missed day, but only from the day it was given", () => {
+    // Days: met, met, missed (gift given that day), met.
+    const gift = addDays(TODAY, -2);
+    const s = computeStreak(history(10, 10, 0, 10), rules, TODAY, [gift]);
+    expect(s.days[2]?.status).toBe("frozen");
+    expect(s.current).toBe(3);
+    expect(s.freezes).toBe(0);
+
+    // Given after the missed day: too late for it, kept for later.
+    const late = computeStreak(history(10, 10, 0, 10), rules, TODAY, [addDays(TODAY, -1)]);
+    expect(late.days[2]?.status).toBe("missed");
+    expect(late.freezes).toBe(1);
+  });
+
+  it("keeps gifted freezes on top of the 2 earned ones", () => {
+    const s = computeStreak(history(...Array(28).fill(10)), rules, TODAY, ["2026-01-01", TODAY]);
+    expect(s.freezes).toBe(4);
+  });
+
   it("never holds more than 2 freezes", () => {
     const s = computeStreak(history(...Array(28).fill(10)), rules, TODAY);
     expect(s.freezes).toBe(2);

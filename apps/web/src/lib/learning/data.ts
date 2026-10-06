@@ -3,6 +3,7 @@ import { and, count, eq, schema, sql } from "@ribbon/db";
 import { cache } from "react";
 import { QUIZZES, questionIndex } from "@/guides/quizzes";
 import { db } from "../db";
+import { countReadingFriends, getPerks } from "../invites/perks";
 import { getStreak } from "../streaks/data";
 import { firstSchedule, type LearningStats, scheduleReview } from "./logic";
 
@@ -120,35 +121,44 @@ export const getDueCount = cache(async (userId: string): Promise<number> => {
   return row?.n ?? 0;
 });
 
+/** Chapters with at least 90% of their blocks read. Not cached: always fresh. */
+export async function countFinishedChapters(userId: string): Promise<number> {
+  const rows = await db.execute<{ finished: number }>(sql`
+    select count(*)::int as finished from (
+      select c.book_id, c.id
+      from chapters c
+      left join block_reads r on r.book_id = c.book_id and r.chapter_id = c.id and r.user_id = ${userId}
+      where c.number is not null
+      group by c.book_id, c.id, c.block_count
+      having count(r.block_id) >= 0.9 * c.block_count
+    ) t
+  `);
+  return Number(rows.rows[0]?.finished ?? 0);
+}
+
 /** Everything XP, levels, and badges are worked out from. */
 export const getLearningStats = cache(async (userId: string): Promise<LearningStats> => {
-  const [minutes, answers, reviews, chapters, streak] = await Promise.all([
-    db.execute<{ m: number }>(
-      sql`select coalesce(sum(active_seconds), 0) / 60.0 as m from reading_sessions where user_id = ${userId}`,
-    ),
-    db
-      .select({
-        questionId: schema.quizAnswers.questionId,
-        firstCorrect: schema.quizAnswers.firstCorrect,
-        bookId: schema.quizAnswers.bookId,
-      })
-      .from(schema.quizAnswers)
-      .where(eq(schema.quizAnswers.userId, userId)),
-    db.execute<{ n: number }>(
-      sql`select coalesce(sum(reviews), 0)::int as n from review_cards where user_id = ${userId}`,
-    ),
-    db.execute<{ finished: number }>(sql`
-      select count(*)::int as finished from (
-        select c.book_id, c.id
-        from chapters c
-        left join block_reads r on r.book_id = c.book_id and r.chapter_id = c.id and r.user_id = ${userId}
-        where c.number is not null
-        group by c.book_id, c.id, c.block_count
-        having count(r.block_id) >= 0.9 * c.block_count
-      ) t
-    `),
-    getStreak(userId),
-  ]);
+  const [minutes, answers, reviews, chaptersFinished, streak, perks, readingFriends] =
+    await Promise.all([
+      db.execute<{ m: number }>(
+        sql`select coalesce(sum(active_seconds), 0) / 60.0 as m from reading_sessions where user_id = ${userId}`,
+      ),
+      db
+        .select({
+          questionId: schema.quizAnswers.questionId,
+          firstCorrect: schema.quizAnswers.firstCorrect,
+          bookId: schema.quizAnswers.bookId,
+        })
+        .from(schema.quizAnswers)
+        .where(eq(schema.quizAnswers.userId, userId)),
+      db.execute<{ n: number }>(
+        sql`select coalesce(sum(reviews), 0)::int as n from review_cards where user_id = ${userId}`,
+      ),
+      countFinishedChapters(userId),
+      getStreak(userId),
+      getPerks(userId),
+      countReadingFriends(userId),
+    ]);
 
   // A chapter check is perfect when every question in it was right on the first try.
   const right = new Set(
@@ -175,8 +185,10 @@ export const getLearningStats = cache(async (userId: string): Promise<LearningSt
     reviews: Number(reviews.rows[0]?.n ?? 0),
     currentStreak: streak.current,
     bestStreak: streak.best,
-    chaptersFinished: Number(chapters.rows[0]?.finished ?? 0),
+    chaptersFinished,
     perfectChecks,
+    bonusXp: perks.xp,
+    readingFriends,
   };
 });
 
