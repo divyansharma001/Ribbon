@@ -1,0 +1,350 @@
+/*
+ * Highlights, notes, and bookmarks. Highlight colors are see-through so the
+ * text stays readable in every theme; the dark theme uses softer ones.
+ */
+
+:root,
+[data-theme="light"],
+[data-theme="sepia"] {
+  --hl-yellow: rgb(255 204 0 / 0.36);
+  --hl-green: rgb(52 199 89 / 0.26);
+  --hl-blue: rgb(10 132 255 / 0.2);
+  --hl-pink: rgb(255 55 135 / 0.2);
+}
+[data-theme="dark"] {
+  --hl-yellow: rgb(255 214 10 / 0.26);
+  --hl-green: rgb(48 209 88 / 0.22);
+  --hl-blue: rgb(64 156 255 / 0.26);
+  --hl-pink: rgb(255 85 150 / 0.24);
+}
+@media (prefers-color-scheme: dark) {
+  [data-theme="system"] {
+    --hl-yellow: rgb(255 214 10 / 0.26);
+    --hl-green: rgb(48 209 88 / 0.22);
+    --hl-blue: rgb(64 156 255 / 0.26);
+    --hl-pink: rgb(255 85 150 / 0.24);
+  }
+}
+
+/* The ::highlight() rules live in annotation-layer.tsx (the CSS build tool can't parse them yet). */
+
+/* Bookmark ribbon in the right margin of a block. */
+.bm-flag {
+  position: absolute;
+  top: -0.15em;
+  right: -1.15em;
+  width: 0.62em;
+  height: 1.05em;
+  background: var(--accent);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 74%, 0 100%);
+  pointer-events: none;
+}
+
+/* Floating bar after selecting text, and the highlight editor. */
+.hl-bar,
+.hl-editor {
+  position: fixed;
+  z-index: 60;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow:
+    0 12px 32px rgb(0 0 0 / 0.22),
+    0 2px 6px rgb(0 0 0 / 0.12);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  animation: hl-in 0.12s ease-out;
+}
+@keyframes hl-in {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+}
+.hl-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.35rem 0.3rem 0.5rem;
+  border-radius: 999px;
+}
+.hl-sep {
+  width: 1px;
+  height: 1.3rem;
+  margin: 0 0.15rem;
+  background: var(--border);
+}
+.hl-swatches {
+  display: flex;
+  gap: 0.3rem;
+}
+.hl-swatch {
+  width: 1.65rem;
+  height: 1.65rem;
+  border: 2px solid transparent;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.08);
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+.hl-swatch:hover {
+  transform: scale(1.1);
+}
+.hl-swatch[data-color="yellow"] {
+  background: rgb(255 204 0);
+}
+.hl-swatch[data-color="green"] {
+  background: rgb(52 199 89);
+}
+.hl-swatch[data-color="blue"] {
+  background: rgb(10 132 255);
+}
+.hl-swatch[data-color="pink"] {
+  background: rgb(255 55 135);
+}
+.hl-swatch[aria-pressed="true"] {
+  border-color: var(--surface);
+  box-shadow: 0 0 0 2px var(--text);
+}
+.hl-action {
+  height: 2rem;
+  padding: 0 0.75rem;
+  border-radius: 999px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.hl-action:hover {
+  background: var(--surface-muted);
+}
+.hl-action.is-danger {
+  color: var(--accent);
+}
+
+.hl-editor {
+  width: min(22rem, calc(100vw - 24px));
+  padding: 0.6rem;
+  border-radius: 0.9rem;
+}
+.hl-editor-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding-left: 0.2rem;
+}
+.hl-editor-tools {
+  display: flex;
+}
+.hl-add-note {
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px dashed var(--border);
+  border-radius: 0.6rem;
+  color: var(--text-muted);
+  text-align: left;
+}
+.hl-add-note:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+.hl-note {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin-top: 0.5rem;
+}
+.hl-note textarea {
+  width: 100%;
+  min-height: 5rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 0.6rem;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  line-height: 1.45;
+  resize: vertical;
+}
+.hl-note textarea:focus {
+  outline: 2px solid var(--focus);
+  outline-offset: -1px;
+}
+.hl-done {
+  align-self: flex-end;
+  padding: 0.4rem 1rem;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-weight: 600;
+}
+
+.hl-toast {
+  position: fixed;
+  z-index: 70;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.55rem 1rem;
+  border-radius: 999px;
+  background: var(--text);
+  color: var(--bg);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hl-bar,
+  .hl-editor {
+    animation: none;
+  }
+}
+
+/* Drawer tabs and the notes list. */
+.drawer-tabs {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.6rem 1rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.drawer-tab {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.75rem 0.6rem;
+  border-bottom: 2px solid transparent;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+.drawer-tab[aria-selected="true"] {
+  border-bottom-color: var(--accent);
+  color: var(--text);
+}
+.drawer-count {
+  min-width: 1.3rem;
+  padding: 0 0.35rem;
+  border-radius: 999px;
+  background: var(--surface-muted);
+  font-size: 11.5px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.notes-empty {
+  padding: 1.5rem 0.75rem;
+  font-size: 14px;
+  color: var(--text-muted);
+  text-wrap: pretty;
+}
+.notes-empty p + p {
+  margin-top: 0.4rem;
+}
+.notes-empty .font-medium {
+  color: var(--text);
+}
+.notes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.notes-item {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  border-radius: 0.6rem;
+}
+.notes-item:hover {
+  background: var(--surface-muted);
+}
+.notes-link {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.6rem 0.4rem 0.6rem 0.75rem;
+}
+.notes-kind {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.notes-quote {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  font-family: var(--font-serif);
+  font-size: 14.5px;
+  line-height: 1.45;
+}
+.notes-quote.is-highlight {
+  padding-left: 0.6rem;
+  border-left: 3px solid var(--hl-yellow);
+}
+.notes-item[data-color="green"] .notes-quote.is-highlight {
+  border-left-color: rgb(52 199 89);
+}
+.notes-item[data-color="blue"] .notes-quote.is-highlight {
+  border-left-color: rgb(10 132 255);
+}
+.notes-item[data-color="pink"] .notes-quote.is-highlight {
+  border-left-color: rgb(255 55 135);
+}
+.notes-item[data-color="yellow"] .notes-quote.is-highlight {
+  border-left-color: rgb(255 204 0);
+}
+.notes-note {
+  padding-left: 0.85rem;
+  font-size: 13.5px;
+  color: var(--text-muted);
+  white-space: pre-wrap;
+}
+.notes-delete {
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  margin: 0.4rem 0.3rem 0 0;
+  border-radius: 999px;
+  color: var(--text-muted);
+  font-size: 1.15rem;
+  opacity: 0;
+}
+.notes-item:hover .notes-delete,
+.notes-delete:focus-visible {
+  opacity: 1;
+}
+@media (hover: none) {
+  .notes-delete {
+    opacity: 1;
+  }
+}
+.notes-delete:hover {
+  background: var(--border);
+  color: var(--text);
+}
+
+/* The same highlights on book mode's page copies, while a page turns. */
+.hl-copy {
+  color: inherit;
+  background: var(--hl-yellow);
+}
+.hl-copy[data-color="green"] {
+  background: var(--hl-green);
+}
+.hl-copy[data-color="blue"] {
+  background: var(--hl-blue);
+}
+.hl-copy[data-color="pink"] {
+  background: var(--hl-pink);
+}
+.hl-copy[data-noted] {
+  text-decoration: underline dotted var(--accent);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 0.22em;
+}

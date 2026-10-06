@@ -113,6 +113,11 @@ export const annotations = pgTable(
     id: uuid().primaryKey(),
     userId: userId(),
     bookId: bookId(),
+    /**
+     * One user action: a highlight across three paragraphs is three rows (one
+     * range per block) sharing a group, so it is edited and deleted as one.
+     */
+    groupId: uuid().notNull(),
     kind: text().$type<"bookmark" | "highlight" | "note">().notNull(),
     chapterId: text().notNull(),
     blockId: text().notNull(),
@@ -126,6 +131,7 @@ export const annotations = pgTable(
   },
   (t) => [
     index("annotations_user_book_idx").on(t.userId, t.bookId, t.chapterId),
+    index("annotations_group_idx").on(t.userId, t.groupId),
     check("annotations_kind", sql`${t.kind} in ('bookmark', 'highlight', 'note')`),
   ],
 );

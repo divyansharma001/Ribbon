@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Fragment } from "react";
+import { AnnotationLayer } from "@/components/annotations/annotation-layer";
+import { BookmarkFlag } from "@/components/annotations/bookmarks";
 import { BookView } from "@/components/book/book-view";
 import { QuizCard } from "@/components/quiz/quiz-card";
 import { Blocks, BlockView } from "@/components/reader/blocks";
@@ -15,6 +17,7 @@ import { diagramsFor } from "@/diagrams/registry";
 import { inShortFor } from "@/guides/in-short";
 import { InShortCard } from "@/guides/in-short-card";
 import { quizzesFor } from "@/guides/quizzes";
+import { getAnnotations } from "@/lib/annotations/data";
 import {
   collectXrefTargets,
   getBook,
@@ -42,7 +45,7 @@ export async function generateMetadata({
 export default async function ChapterPage({ params }: PageProps<"/books/[bookId]/[chapterId]">) {
   const user = await requireUser();
   const { bookId, chapterId } = await params;
-  const [book, chapter, blocks, chapters, resume, mode, streak, answers, glossary] =
+  const [book, chapter, blocks, chapters, resume, mode, streak, answers, glossary, marks] =
     await Promise.all([
       getBook(bookId),
       getChapter(bookId, chapterId),
@@ -53,6 +56,7 @@ export default async function ChapterPage({ params }: PageProps<"/books/[bookId]
       getStreak(user.id),
       getChapterAnswers(user.id, bookId, chapterId),
       getGlossary(bookId),
+      getAnnotations(user.id, bookId, chapterId),
     ]);
   if (!book || !chapter) notFound();
 
@@ -120,6 +124,7 @@ export default async function ChapterPage({ params }: PageProps<"/books/[bookId]
               data-section={b.sectionAnchor}
             >
               <BlockView block={b.data} ctx={ctx} />
+              <BookmarkFlag blockId={b.id} />
             </div>
             {summary && <InShortCard summary={summary} />}
             {diagram && <diagram.Component />}
@@ -201,6 +206,7 @@ export default async function ChapterPage({ params }: PageProps<"/books/[bookId]
         ))}
       </div>
       <ReaderPopups />
+      <AnnotationLayer bookId={bookId} chapterId={chapterId} initial={marks} />
       <ReadingTracker
         bookId={bookId}
         chapterId={chapterId}

@@ -3,6 +3,8 @@
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { type ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { paintCopy } from "@/components/annotations/paint-copy";
+import { ANNOTATIONS_CHANGED, highlightAt } from "@/components/annotations/store";
 import { useReducedMotion } from "@/diagrams/use-steps";
 import { SURFACE_MOVED, setReadingSurface } from "../reader/surface";
 import { hapticTap, playPageTurn } from "./feedback";
@@ -60,6 +62,14 @@ export function BookView({ chapterLabel, prevHref, nextHref, children }: BookVie
   const turning = useRef<Turn | null>(null);
   const animation = useRef<Animation | null>(null);
   const copies = useRef<HTMLElement | null>(null);
+  // Highlights changed: the next page turn makes fresh copies.
+  useEffect(() => {
+    const reset = () => {
+      copies.current = null;
+    };
+    window.addEventListener(ANNOTATIONS_CHANGED, reset);
+    return () => window.removeEventListener(ANNOTATIONS_CHANGED, reset);
+  }, []);
   /** The paragraph at the top of the current page, so any re-layout keeps the reader there. */
   const anchor = useRef<{ el: HTMLElement; offset: number } | null>(null);
 
@@ -222,6 +232,7 @@ export function BookView({ chapterLabel, prevHref, nextHref, children }: BookVie
     if (target === null || target < 0 || target >= countRef.current) return;
     if (!copies.current) {
       const copy = flow.cloneNode(true) as HTMLElement;
+      paintCopy(copy);
       // Copies must not repeat ids or look like real blocks to the tracker.
       for (const el of copy.querySelectorAll("[id], [data-block-id]")) {
         el.removeAttribute("id");
@@ -504,6 +515,9 @@ export function BookView({ chapterLabel, prevHref, nextHref, children }: BookVie
       )
     )
       return;
+    // Tapping a highlight opens it, and a tap with text selected just clears the selection.
+    if (highlightAt(e.clientX, e.clientY)) return;
+    if (document.getSelection()?.isCollapsed === false) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const edge = Math.min(120, rect.width * 0.14);

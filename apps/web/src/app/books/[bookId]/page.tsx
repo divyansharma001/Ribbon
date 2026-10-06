@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { RibbonMark } from "@/components/ribbon-mark";
 import { SoundButton } from "@/components/sound/sound-button";
 import { ThemePicker } from "@/components/theme-picker";
+import { getBookNotes, type NoteEntry } from "@/lib/annotations/data";
 import { getBook } from "@/lib/books";
 import { getContinueReading } from "@/lib/home";
 import { getDueCount } from "@/lib/learning/data";
@@ -100,14 +101,66 @@ function SectionRow({
   );
 }
 
+function NotesSection({ bookId, notes }: { bookId: string; notes: NoteEntry[] }) {
+  const byChapter = new Map<string, NoteEntry[]>();
+  for (const n of notes) byChapter.set(n.chapterId, [...(byChapter.get(n.chapterId) ?? []), n]);
+  return (
+    <section id="notes" aria-labelledby="notes-title" className="ov-notes">
+      <h2 id="notes-title" className="home-section-title">
+        Notes and highlights
+      </h2>
+      {notes.length === 0 ? (
+        <p className="home-card home-muted">
+          Nothing yet. While reading, select text to highlight it or add a note, and use the ribbon
+          button at the top to bookmark your spot. Everything shows up here.
+        </p>
+      ) : (
+        <div className="ov-notes-list">
+          {[...byChapter].map(([chapterId, list]) => (
+            <div key={chapterId} className="home-card ov-notes-chapter">
+              <h3>
+                {list[0]?.chapterNumber ? `Chapter ${list[0].chapterNumber} · ` : ""}
+                {list[0]?.chapterTitle}
+              </h3>
+              <ul>
+                {list.map((n) => (
+                  <li key={n.groupId} className="notes-item" data-color={n.color ?? undefined}>
+                    <Link
+                      href={`/books/${bookId}/${chapterId}#${n.blockId}` as Route}
+                      className="notes-link"
+                    >
+                      {n.kind === "bookmark" ? (
+                        <>
+                          <span className="notes-kind">Bookmark</span>
+                          <span className="notes-quote">{n.text}</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="notes-quote is-highlight">{n.text}</span>
+                          {n.note && <span className="notes-note">{n.note}</span>}
+                        </>
+                      )}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
 export default async function BookPage({ params }: PageProps<"/books/[bookId]">) {
   const user = await requireUser();
   const { bookId } = await params;
-  const [book, chapters, last, due] = await Promise.all([
+  const [book, chapters, last, due, notes] = await Promise.all([
     getBook(bookId),
     getBookOverview(user.id, bookId),
     getContinueReading(user.id),
     getDueCount(user.id),
+    getBookNotes(user.id, bookId),
   ]);
   if (!book) notFound();
 
@@ -247,6 +300,8 @@ export default async function BookPage({ params }: PageProps<"/books/[bookId]">)
             })}
           </ol>
         </section>
+
+        <NotesSection bookId={bookId} notes={notes} />
       </main>
     </div>
   );

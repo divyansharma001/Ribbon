@@ -5,6 +5,7 @@
 @import "./home.css";
 @import "./quiz.css";
 @import "./overview.css";
+@import "./annotations.css";
 
 /*
  * Design tokens. Three reading themes (light, sepia, dark), chosen with

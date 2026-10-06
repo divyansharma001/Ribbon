@@ -1,5 +1,6 @@
 import { expect, type Page, test } from "@playwright/test";
 import { E2E_URL } from "../playwright.config";
+import { turnPage } from "./support/book";
 import { useDevice } from "./support/device";
 
 test.describe.configure({ mode: "serial" });
@@ -25,11 +26,11 @@ test.describe("on a 14-inch Mac", () => {
     await expect(page.locator('.book[data-spread="true"]')).toBeVisible();
     await expect(pages(page)).toHaveText(/^Page 1–2 of \d+$/);
 
-    for (let i = 0; i < 3; i++) {
+    // Wait for each turn to land before the next key press.
+    for (const shown of ["3–4", "5–6", "7–8"]) {
       await page.keyboard.press("ArrowRight");
-      await page.waitForTimeout(800);
+      await expect(pages(page)).toHaveText(new RegExp(`^Page ${shown} of \\d+$`));
     }
-    await expect(pages(page)).toHaveText(/^Page 7–8 of \d+$/);
 
     await page.keyboard.press("ArrowLeft");
     await expect(pages(page)).toHaveText(/^Page 5–6 of \d+$/);
@@ -38,10 +39,7 @@ test.describe("on a 14-inch Mac", () => {
   test("comes back to the same page after a reload", async ({ page, context }) => {
     await useDevice(context, E2E_URL, "device-book-0003", "Mac · Safari");
     await page.goto(CHAPTER);
-    for (let i = 0; i < 4; i++) {
-      await page.keyboard.press("ArrowRight");
-      await page.waitForTimeout(800);
-    }
+    for (let i = 0; i < 4; i++) await turnPage(page);
     // Compare the pages shown; the total can settle a moment later as figures load.
     const shown = (await pages(page).textContent())?.replace(/ of \d+$/, "") ?? "";
     await page.waitForResponse((r) => r.url().endsWith("/api/progress") && r.status() === 204, {

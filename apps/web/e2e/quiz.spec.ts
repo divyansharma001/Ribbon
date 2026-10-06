@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { E2E_URL } from "../playwright.config";
+import { turnPage } from "./support/book";
 import { useDevice } from "./support/device";
 
 test.use({ viewport: { width: 1512, height: 982 } });
@@ -21,10 +22,7 @@ test("a quick check stops the book until it is answered, then goes to review", a
       const r = document.querySelector(".quiz-card")?.getClientRects()[0];
       return !!book && !!r && r.left >= book.left - 1 && r.right <= book.right + 1;
     });
-  for (let i = 0; i < 4 && !(await shown()); i++) {
-    await page.keyboard.press("ArrowRight");
-    await page.waitForTimeout(800);
-  }
+  for (let i = 0; i < 4 && !(await shown()); i++) await turnPage(page);
   await expect(card).toHaveAttribute("data-quiz-state", "open");
   const at = await pages.textContent();
 

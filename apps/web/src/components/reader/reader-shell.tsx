@@ -3,6 +3,9 @@
 import type { OutlineNode } from "@ribbon/book-schema";
 import Link from "next/link";
 import { type ReactNode, useEffect, useRef, useState } from "react";
+import { BookmarkButton } from "@/components/annotations/bookmarks";
+import { AllNotesLink, NotesList } from "@/components/annotations/notes-list";
+import { useAnnotations } from "@/components/annotations/store";
 import { SoundButton } from "@/components/sound/sound-button";
 import { ThemePicker } from "@/components/theme-picker";
 
@@ -18,9 +21,11 @@ interface ReaderShellProps {
   children: ReactNode;
 }
 
-/** Top bar (hides while scrolling down) and the contents drawer around a chapter. */
+/** Top bar (hides while scrolling down) and the contents and notes drawer around a chapter. */
 export function ReaderShell(props: ReaderShellProps) {
   const [barHidden, setBarHidden] = useState(false);
+  const [tab, setTab] = useState<"contents" | "notes">("contents");
+  const noteCount = new Set(useAnnotations().map((a) => a.groupId)).size;
   // The bar shows the chapter name only once the big chapter title has scrolled away.
   const [titleInView, setTitleInView] = useState(true);
   const dialog = useRef<HTMLDialogElement>(null);
@@ -63,8 +68,9 @@ export function ReaderShell(props: ReaderShellProps) {
           >
             <ChevronLeft />
           </Link>
+          <BookmarkButton bookId={props.bookId} chapterId={props.chapterId} />
           {/* Balances the buttons on the right so the title stays centered. */}
-          <span className="h-10 w-[7.5rem] shrink-0 max-sm:w-20" aria-hidden="true" />
+          <span className="h-10 w-[5rem] shrink-0 max-sm:w-10" aria-hidden="true" />
           <div
             className={`min-w-0 flex-1 text-center transition-opacity duration-200 ${
               titleInView ? "opacity-0" : "opacity-100"
@@ -81,7 +87,10 @@ export function ReaderShell(props: ReaderShellProps) {
           <ThemePicker />
           <button
             type="button"
-            onClick={() => dialog.current?.showModal()}
+            onClick={() => {
+              setTab("contents");
+              dialog.current?.showModal();
+            }}
             className="flex size-10 items-center justify-center rounded-full text-muted hover:bg-surface-muted hover:text-text"
             aria-label="Contents"
           >
@@ -120,16 +129,46 @@ export function ReaderShell(props: ReaderShellProps) {
               <CloseIcon />
             </button>
           </div>
-          <nav className="flex-1 overflow-y-auto px-3 py-3" aria-label="Sections">
-            <OutlineList nodes={props.outline} />
-          </nav>
-          <div className="border-t border-border px-5 py-3">
-            <Link
-              href={`/books/${props.bookId}`}
-              className="text-sm font-medium text-accent hover:underline"
+          <div className="drawer-tabs" role="tablist" aria-label="Show">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === "contents"}
+              className="drawer-tab"
+              onClick={() => setTab("contents")}
             >
-              All chapters
-            </Link>
+              Contents
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === "notes"}
+              className="drawer-tab"
+              onClick={() => setTab("notes")}
+            >
+              Notes{noteCount > 0 && <span className="drawer-count">{noteCount}</span>}
+            </button>
+          </div>
+          {tab === "contents" ? (
+            <nav className="flex-1 overflow-y-auto px-3 py-3" aria-label="Sections">
+              <OutlineList nodes={props.outline} />
+            </nav>
+          ) : (
+            <div className="flex-1 overflow-y-auto px-3 py-3" role="tabpanel" aria-label="Notes">
+              <NotesList bookId={props.bookId} />
+            </div>
+          )}
+          <div className="border-t border-border px-5 py-3">
+            {tab === "contents" ? (
+              <Link
+                href={`/books/${props.bookId}`}
+                className="text-sm font-medium text-accent hover:underline"
+              >
+                All chapters
+              </Link>
+            ) : (
+              <AllNotesLink bookId={props.bookId} />
+            )}
           </div>
         </div>
       </dialog>

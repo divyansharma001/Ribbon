@@ -305,3 +305,29 @@
   background: var(--ok-soft);
   color: var(--ok);
 }
+
+/* All notes and highlights */
+.ov-notes {
+  scroll-margin-top: 4.5rem;
+}
+.ov-notes .home-section-title {
+  margin: 0.75rem 0;
+}
+.ov-notes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.ov-notes-chapter {
+  padding: 1rem 0.9rem;
+}
+.ov-notes-chapter h3 {
+  margin: 0 0.4rem 0.4rem;
+  font-size: 14px;
+  font-weight: 600;
+}
+.ov-notes-chapter ul {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
