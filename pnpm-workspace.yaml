@@ -2,8 +2,8 @@ packages:
   - "apps/*"
   - "packages/*"
 
-# Packages allowed to run install scripts. Both ship prebuilt binaries, so scripts stay off.
+# Packages allowed to run install scripts. All ship prebuilt binaries, so scripts stay off.
 allowBuilds:
-  esbuild: set this to true or false
+  esbuild: false
   sharp: false
   unrs-resolver: false
