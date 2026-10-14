@@ -10,6 +10,7 @@ import {
   WeekStrip,
 } from "@/components/home/streak-parts";
 import { LeagueCard } from "@/components/invites/league";
+import { NotificationsLink } from "@/components/notifications-link";
 import { RaceCard } from "@/components/records/race";
 import { RibbonMark } from "@/components/ribbon-mark";
 import { SettingsLink } from "@/components/settings-link";
@@ -20,6 +21,7 @@ import { syncPerks } from "@/lib/invites/data";
 import { getLeague } from "@/lib/invites/league";
 import { getDueCount, getLearningStats, getNextDue } from "@/lib/learning/data";
 import { badgesFor, levelFor, xpFrom } from "@/lib/learning/logic";
+import { getUnreadCount, notifyMilestones } from "@/lib/notify/data";
 import { timeAgo } from "@/lib/reading/logic";
 import { getRecords } from "@/lib/records/data";
 import { requireUser } from "@/lib/session";
@@ -61,6 +63,10 @@ export default async function Home() {
     getLeague(user.id),
   ]);
   const level = levelFor(xpFrom(stats));
+  const badges = badgesFor(stats);
+  // Newly earned badges and levels land under the bell before it is counted.
+  await notifyMilestones(user.id, badges, level);
+  const unread = await getUnreadCount(user.id);
   const { settings } = streak;
   const firstName = user.name.split(" ")[0] ?? user.name;
   const left = Math.max(0, Math.ceil(streak.goalMinutes - streak.todayProgress));
@@ -83,6 +89,7 @@ export default async function Home() {
         <div className="flex items-center gap-1">
           <SoundButton />
           <ThemePicker />
+          <NotificationsLink unread={unread} />
           <SettingsLink />
         </div>
       </header>
@@ -192,7 +199,7 @@ export default async function Home() {
           <StreakCalendar days={days} goal={streak.goalMinutes} />
         </section>
 
-        <BadgeShelf badges={badgesFor(stats)} />
+        <BadgeShelf badges={badges} />
 
         <div className="home-grid home-grid-even">
           <section className="home-card" aria-labelledby="books-title">

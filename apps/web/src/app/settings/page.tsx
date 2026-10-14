@@ -3,8 +3,10 @@ import Link from "next/link";
 import { GoalSettings } from "@/components/home/goal-settings";
 import { RibbonMark } from "@/components/ribbon-mark";
 import { ReadingSettings } from "@/components/settings/reading-settings";
+import { ReminderSettings } from "@/components/settings/reminder-settings";
 import { SignOutButton } from "@/components/settings/sign-out";
 import { getBooks } from "@/lib/books";
+import { emailReady } from "@/lib/notify/email";
 import { getReaderPrefs } from "@/lib/prefs-server";
 import { requireUser } from "@/lib/session";
 import { getStreakSettings } from "@/lib/streaks/data";
@@ -72,6 +74,24 @@ export default async function SettingsPage() {
             Days start at midnight {zoneName(goal.timeZone)} ({goal.timeZone.replace(/_/g, " ")}),
             taken from this device.
           </p>
+        </section>
+
+        <section id="reminder" className="home-card set-section" aria-labelledby="reminder-title">
+          <h2 id="reminder-title" className="home-section-title">
+            Reminder
+          </h2>
+          <ReminderSettings
+            reminderAt={goal.reminderAt}
+            email={user.email}
+            emailReady={emailReady()}
+          />
+          {goal.reminderAt !== null && (
+            <p className="set-hint">
+              Times are {zoneName(goal.timeZone)}.
+              {goal.weekendsOff &&
+                " No reminders on Saturdays and Sundays, since weekends are off."}
+            </p>
+          )}
         </section>
 
         <section className="home-card set-section" aria-labelledby="data-title">

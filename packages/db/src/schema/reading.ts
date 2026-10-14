@@ -328,3 +328,28 @@ export const focusRuns = pgTable(
     check("focus_runs_seconds", sql`${t.seconds} >= 0`),
   ],
 );
+
+/**
+ * What the reader sees under the bell on Home. Each row is written once when
+ * something happens; `key` makes repeats a no-op (e.g. "badge:week", or
+ * "reminder:2026-10-14" for one reminder a day).
+ */
+export const notifications = pgTable(
+  "notifications",
+  {
+    id: uuid().primaryKey(),
+    userId: userId(),
+    kind: text().$type<"reminder" | "friend-joined" | "perk" | "badge" | "level">().notNull(),
+    key: text().notNull(),
+    title: text().notNull(),
+    body: text().notNull(),
+    /** Where clicking it goes, e.g. "/invite". */
+    href: text(),
+    createdAt: createdAt(),
+    readAt: timestamp({ withTimezone: true }),
+  },
+  (t) => [
+    uniqueIndex("notifications_once_idx").on(t.userId, t.key),
+    index("notifications_user_created_idx").on(t.userId, t.createdAt),
+  ],
+);

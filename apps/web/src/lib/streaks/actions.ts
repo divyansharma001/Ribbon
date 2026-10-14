@@ -25,3 +25,12 @@ export async function updateTimeZone(timeZone: string) {
   await saveStreakSettings(user.id, { timeZone: String(timeZone) });
   refresh();
 }
+
+/** Sets the daily reminder email time ("HH:MM", the reader's local time), or turns it off (null). */
+export async function updateReminder(reminderAt: string | null) {
+  const user = await requireUser();
+  await saveStreakSettings(user.id, {
+    reminderAt: reminderAt === null ? null : String(reminderAt),
+  });
+  refresh();
+}

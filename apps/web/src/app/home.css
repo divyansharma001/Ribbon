@@ -1531,3 +1531,160 @@
   margin-top: 0.15rem;
   accent-color: var(--accent);
 }
+
+/* Reminder time */
+.set-reminder-time {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.set-reminder-time .goal-settings-label {
+  margin-bottom: 0;
+}
+.set-select {
+  height: 2.3rem;
+  padding: 0 2rem 0 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 0.6rem;
+  background: var(--surface)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%23888' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 4.5 6 7.5 9 4.5'/%3E%3C/svg%3E")
+    no-repeat right 0.7rem center;
+  color: var(--text);
+  font-size: 14px;
+  appearance: none;
+  cursor: pointer;
+}
+.set-select:hover {
+  border-color: var(--accent);
+}
+.goal-switch-row:disabled {
+  cursor: not-allowed;
+}
+.goal-switch-row:disabled .menu-switch {
+  opacity: 0.5;
+}
+
+/* Notifications: the bell's count, and the list */
+.notif-count {
+  position: absolute;
+  top: 0.3rem;
+  right: 0.25rem;
+  min-width: 1.05rem;
+  height: 1.05rem;
+  padding: 0 0.25rem;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 1.05rem;
+  text-align: center;
+  box-shadow: 0 0 0 2px var(--bg);
+}
+.notif-list {
+  padding: 0.4rem;
+  list-style: none;
+}
+.notif-list li + li {
+  border-top: 1px solid var(--border);
+}
+.notif-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+  padding: 0.95rem 1rem;
+  border-radius: 0.8rem;
+}
+a.notif-item:hover {
+  background: var(--surface-muted);
+}
+.notif-icon {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 999px;
+  background: var(--surface-muted);
+  color: var(--text-muted);
+}
+.notif-icon[data-kind="badge"],
+.notif-icon[data-kind="level"] {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.notif-icon[data-kind="perk"],
+.notif-icon[data-kind="friend-joined"] {
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+.notif-flame {
+  width: 1.15rem;
+  height: 1.15rem;
+  color: #e8793a;
+}
+.notif-text {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: 14px;
+  line-height: 1.45;
+}
+.notif-title {
+  font-weight: 500;
+}
+.notif-when {
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.3rem;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.notif-new {
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-size: 11px;
+  font-weight: 600;
+}
+.notif-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+.notif-empty .ov-secondary {
+  margin-top: 0.5rem;
+}
+
+/* Stop reminder emails */
+.unsub {
+  display: grid;
+  min-height: 100dvh;
+  place-items: center;
+  padding: 1.25rem;
+}
+.unsub-card {
+  display: flex;
+  max-width: 26rem;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.9rem;
+}
+.unsub-title {
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+@media (max-width: 560px) {
+  .notif-item {
+    padding: 0.85rem 0.6rem;
+  }
+}

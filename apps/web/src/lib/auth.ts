@@ -44,7 +44,7 @@ export const auth = betterAuth({
         },
         after: async (user, context) => {
           const code = isOwner(user.email) ? null : inviteCode(context);
-          if (code) await claimInvite(code, user.id);
+          if (code) await claimInvite(code, user.id, user.name);
         },
       },
     },

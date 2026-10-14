@@ -55,7 +55,7 @@ export function addDays(date: string, n: number): string {
   return new Date(Date.parse(`${date}T00:00:00Z`) + n * DAY_MS).toISOString().slice(0, 10);
 }
 
-function isWeekend(date: string): boolean {
+export function isWeekend(date: string): boolean {
   const day = new Date(`${date}T00:00:00Z`).getUTCDay();
   return day === 0 || day === 6;
 }

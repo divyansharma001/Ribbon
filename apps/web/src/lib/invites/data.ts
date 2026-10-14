@@ -7,6 +7,7 @@ import { cache } from "react";
 import { db } from "../db";
 import { requireEnv } from "../env";
 import { countFinishedChapters } from "../learning/data";
+import { notify } from "../notify/data";
 import { getStreakSettings, loadStreak } from "../streaks/data";
 import { localDate } from "../streaks/logic";
 import {
@@ -114,8 +115,8 @@ export async function isUsableInvite(code: string): Promise<boolean> {
   return invite?.status === "pending";
 }
 
-/** Marks the invite as used by the new account. Only the first claim wins. */
-export async function claimInvite(code: string, userId: string): Promise<boolean> {
+/** Marks the invite as used by the new account, and tells the inviter. Only the first claim wins. */
+export async function claimInvite(code: string, userId: string, name: string): Promise<boolean> {
   const claimed = await db
     .update(schema.invites)
     .set({ usedBy: userId, usedAt: new Date() })
@@ -127,8 +128,19 @@ export async function claimInvite(code: string, userId: string): Promise<boolean
         gt(schema.invites.expiresAt, new Date()),
       ),
     )
-    .returning({ id: schema.invites.id });
-  return claimed.length > 0;
+    .returning({ inviterId: schema.invites.inviterId });
+  const inviterId = claimed[0]?.inviterId;
+  if (!inviterId) return false;
+  await notify(inviterId, [
+    {
+      kind: "friend-joined",
+      key: `friend-joined:${userId}`,
+      title: `${firstName(name)} joined Ribbon`,
+      body: "They used your invite. When they finish a chapter, you both get XP.",
+      href: "/invite",
+    },
+  ]);
+  return true;
 }
 
 // ---------------------------------------------------------------------------
@@ -258,7 +270,53 @@ export async function syncPerks(userId: string): Promise<void> {
         },
       );
     }
-    if (grants.length) await db.insert(schema.perkGrants).values(grants).onConflictDoNothing();
+    if (grants.length === 0) continue;
+    const given = await db
+      .insert(schema.perkGrants)
+      .values(grants)
+      .onConflictDoNothing()
+      .returning({
+        userId: schema.perkGrants.userId,
+        friendId: schema.perkGrants.friendId,
+        reason: schema.perkGrants.reason,
+        xp: schema.perkGrants.xp,
+      });
+    await notifyPerks(given);
+  }
+}
+
+/** Tells each reader about a perk they just got, naming the friend it came from. */
+async function notifyPerks(
+  given: { userId: string; friendId: string; reason: string; xp: number }[],
+): Promise<void> {
+  if (given.length === 0) return;
+  const names = new Map(
+    (
+      await db
+        .select({ id: schema.user.id, name: schema.user.name })
+        .from(schema.user)
+        .where(inArray(schema.user.id, [...new Set(given.map((g) => g.friendId))]))
+    ).map((u) => [u.id, firstName(u.name)]),
+  );
+  for (const g of given) {
+    const friend = names.get(g.friendId) ?? "A friend";
+    await notify(g.userId, [
+      g.reason === "friend-first-chapter"
+        ? {
+            kind: "perk",
+            key: `perk:${g.reason}:${g.friendId}`,
+            title: `${friend} finished a chapter`,
+            body: `You both got ${g.xp} XP for it.`,
+            href: "/invite",
+          }
+        : {
+            kind: "perk",
+            key: `perk:${g.reason}:${g.friendId}`,
+            title: `${friend} reached a ${FRIEND_STREAK_DAYS}-day streak`,
+            body: "You both got a streak freeze. It saves your streak on a missed day.",
+            href: "/invite",
+          },
+    ]);
   }
 }
 

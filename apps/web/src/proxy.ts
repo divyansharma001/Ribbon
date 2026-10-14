@@ -20,8 +20,9 @@ export function proxy(request: NextRequest) {
 export const config = {
   // Everything except the login page, auth API, public profiles (opt-in, totals
   // only; each page checks the profile is turned on), invite links (they only
-  // show who sent them), Next.js internals, and static files.
+  // show who sent them), the reminder-email stop link and the scheduled job
+  // (each checks its own signed token or secret), Next.js internals, and static files.
   matcher: [
-    "/((?!login|api/auth|u/|invite/|_next/static|_next/image|favicon.ico|icon|apple-icon|robots.txt).*)",
+    "/((?!login|api/auth|u/|invite/|unsubscribe|api/email/unsubscribe|api/cron/|_next/static|_next/image|favicon.ico|icon|apple-icon|robots.txt).*)",
   ],
 };
